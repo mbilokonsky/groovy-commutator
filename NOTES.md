@@ -171,3 +171,106 @@ more formal yet. If picked back up, the natural next step is probably
 asking what a second `E` (a generator for a second, non-CA process) would
 need to look like for `cross_commutator` to even be well-typed across the
 two domains, rather than pushing the CA metaphor further on its own.
+
+## 6. New instruments: absential view, second-order memory, meta-evolution
+
+Four ideas surfaced in a separate chat-interface conversation (not this
+codebase), each landing on existing literature once stated precisely.
+Implementation status and code locations are in `CLAUDE.md`'s "New
+instruments" section; this section is the why and the citations.
+
+**Absential cells.** "Absential" is Terrence Deacon's term (*Incomplete
+Nature: How Mind Emerged from Matter*, 2011) for absence that does causal
+work by virtue of what it's absent *relative to* — distinct from inert
+"void." A cell that's off but adjacent to a live cell is absential in
+exactly this sense; a cell that's off and far from anything live is void.
+Formally this is already standard in two adjacent fields: graph theory's
+**closed neighborhood** `N[S] = S ∪ N(S)`, and image processing's
+**morphological dilation** (Minkowski sum of the live set with a unit
+structuring element). What's novel here isn't the set operation, it's the
+proposed *use*: running the structure/noise compressibility diagnostic
+(`classify.compressibility`) on the absential field's trajectory instead
+of on `G`, as a candidate cheap Class-IV detector — a still life's
+absential ring should be small and frozen, a Class III pattern's should
+churn at high density with no structure, a glider's should trace a
+compressible, persistent moving shape. Untested against known Class I-IV
+rules so far.
+
+**Second-order / reversible memory.** `S(t+1) = phi(S(t)) XOR S(t-1)` is
+the standard Margolus-Fredkin construction for giving 1D CA both memory
+and reversibility (Margolus & Toffoli, *Cellular Automata Machines*, MIT
+Press, 1987; see also Fredkin's reversible-computing program) —
+well-trodden, not a new result, but it slots into this package cleanly:
+the "rule looks one step into its own causal past" intuition is exactly
+this, and `D(t-1)` (this package's own derivative, evaluated at a past
+state) is just another array that could be fed in as the memory term
+instead of raw `S(t-1)`.
+
+**Dimension-preserving views and rule space.** `D`, `G`, and the absential
+mask are all `State -> State` maps — same shape, same index structure as
+the state itself. The open question this raises: can the *rule* live in
+that space too, rather than sitting outside it as a fixed 8-bit number?
+For elementary CA the answer is awkward as posed — rule space is fixed at
+8 bits regardless of `n`, it has no natural per-cell dimensionality. The
+real move that gets there is **non-uniform / heterogeneous cellular
+automata**: give every cell its own local rule instead of one shared
+global rule, and the rule-field genuinely has the same shape as the
+state, sitting right alongside it. This isn't a new idea either — it's
+arguably the *founding* idea of the field, abandoned for the cleaner
+single-global-rule case that's dominated since: von Neumann's original
+self-reproducing automaton had cells whose construction instructions were
+themselves patterns of cell states, read and written through the same
+substrate they lived in. Not implemented in this package; flagged as open
+in `CLAUDE.md`.
+
+**Meta-evolution: rules birthing rules.** The idea: each generation
+derives a *candidate child rule* from the current state via some encoding
+function, classifies the parent→child relationship with the same
+five-regime diagnostic used for ordinary rule pairs, and either the child
+"decoheres" — failing to find a stable relationship with its parent,
+either **draining** (collapsing into a shared trivial fixed point, no new
+layer, pure absorption) or **diverging as noise** (no relationship at all)
+— or it **cohcoheres** into a stable new layer, landing in **structured
+divergence**: the regime that doesn't exist for a single rule, where
+parent and child stay in a persistent, compressible, non-identical
+relationship. Whether a given drill stabilizes plausibly depends on
+*representational capacity* — does the child rule's state space have
+enough room (image_ratio, non-lossiness) to sustain a structured
+relationship rather than draining — a quantity this package already
+computes (`metrics.image_ratio`).
+
+The real research lineage this sits inside, so the build extends it
+rather than rediscovering it from scratch: **open-ended evolution** in
+artificial life. Tom Ray's *Tierra* (1991) and Channon's "survivor list"
+work both ask what keeps evolutionary search generating novelty instead
+of collapsing into a stable, boring attractor; more recently Bert Chan's
+exploration of Lenia's rule space asks the same question with continuous
+CA — most mutations are dead ends, a few open into sustained complexity,
+nobody has a clean predictive theory of which.
+
+A smallest-possible version was run live in the originating conversation
+(not yet committed as a script here, see `metaevolution.lineage` for the
+implemented version): one lineage, starting at rule 90, each generation's
+child rule = population count of the current state mod 256 (replace
+mode — child takes over, lineage continues under it), classified with
+this package's five-regime diagnostic. It wandered through several
+structured and noisy handoffs and then, at generation 10, found a stable
+two-cycle in rule space itself: rule 12 generates rule 6, rule 6
+generates rule 12, forever. A terminal node — a small, found, stable
+attractor, not a runaway Class-IV generative tower. One run, one seed,
+one deliberately crude encoding (population count collapses a lot of
+distinct states to the same child rule), so this specific cycle shouldn't
+be read as cosmically significant — but the phenomenon (explore, then
+lock into a small self-sustaining loop) showed up unprompted, on the
+first try, in the simplest possible version of the system. Confirmed
+reproducible on rerun in this codebase (`metaevolution.lineage`, see
+smoke test in commit history).
+
+The obvious lever, and the actual open question: the encoding function.
+Population count is close to the lowest-information generator possible.
+Swapping it for something built from the absential field, from `G(S)`, or
+from `D(S)` sampled at a few positions should plausibly produce both a
+larger reachable set of stable platforms and longer searches before
+locking in — a concrete, runnable first experiment (run the same lineage
+with a few different `g` functions, compare generations-to-cycle and
+cycle period), not yet done.

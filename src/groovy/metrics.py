@@ -24,6 +24,19 @@ def image_ratio(rule_num: int, n: int = 14) -> float:
     return len(images) / (2 ** n)
 
 
+def absential_field(state: np.ndarray) -> np.ndarray:
+    """Cells that are OFF but within the radius-1 closed neighborhood of an
+    ON cell -- Deacon's "absential": off-ness that is constituted by, and
+    does causal work relative to, something present nearby. Distinct from
+    "void" (off and outside every live cell's neighborhood, causally inert).
+
+    closed_neighborhood_size(state) == state.sum() + absential_field(state).sum()
+    """
+    neighborhood = (state | np.roll(state, 1) | np.roll(state, -1)).astype(bool)
+    live = state.astype(bool)
+    return (neighborhood & ~live).astype(np.uint8)
+
+
 def divergence_stats(field: np.ndarray, peak_window: int = 20, settle_window: int = 10) -> dict:
     """Summarize a divergence_trajectory field: how much do the two paths
     disagree early on (peak), where do they end up (final), did they

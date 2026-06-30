@@ -24,6 +24,7 @@ Cross-rule construction (phi_a, phi_b = two different rules):
 from __future__ import annotations
 import numpy as np
 from .ca import apply_rule
+from .metrics import absential_field
 
 
 def C(a: np.ndarray, b: np.ndarray) -> np.ndarray:
@@ -52,6 +53,24 @@ def cross_commutator(state: np.ndarray, rule_a: int, rule_b: int) -> np.ndarray:
     ab = apply_rule(apply_rule(state, rule_b), rule_a)
     ba = apply_rule(apply_rule(state, rule_a), rule_b)
     return C(ab, ba)
+
+
+def absential_trajectory(state0: np.ndarray, rule_num: int, steps: int) -> np.ndarray:
+    """Evolve state0 under a single rule for `steps`, recording the
+    absential field (metrics.absential_field) at each step instead of the
+    raw state. Feed the result to classify.compressibility for a cheap
+    structure/noise diagnostic on the "off but adjacent to alive" view --
+    candidate fast Class-IV detector: a still life's absential ring should
+    be small and frozen, a Class III pattern's absential field should churn
+    at high density with no structure, and a glider's absential field
+    should trace a compressible, persistent moving shape."""
+    n = len(state0)
+    state = state0.copy()
+    field = np.zeros((steps, n), dtype=np.uint8)
+    for t in range(steps):
+        field[t] = absential_field(state)
+        state = apply_rule(state, rule_num)
+    return field
 
 
 def divergence_trajectory(state0: np.ndarray, rule_a: int, rule_b: int, steps: int) -> np.ndarray:

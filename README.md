@@ -7,7 +7,13 @@ rules. Origin: https://liet-codes.github.io/wet-math/commutator.html
 ## Layout
 
 - `src/groovy/` — the actual library. Start with `operators.py`'s
-  docstring, then `ca.py`, `metrics.py`, `classify.py`.
+  docstring, then `ca.py`, `metrics.py`, `classify.py`. `secondorder.py`
+  and `metaevolution.py` are newer extensions (reversible memory CA,
+  rules-birthing-rules) — see `NOTES.md` section 6.
+- `scripts/` — runnable sweep/precompute scripts (`run_full_sweep.py`,
+  `precompute_image_ratios.py`, `aggregate_sweep.py`) that write to
+  `results/`. Use these instead of `classify.sweep` for anything beyond
+  pilot scale.
 - `notebooks/01_exploration.ipynb` — narrated walkthrough: the affine
   theorem, the four single-rule regimes, the five pair regimes, the drain
   mechanism, the pilot sweep.
@@ -15,8 +21,11 @@ rules. Origin: https://liet-codes.github.io/wet-math/commutator.html
   thread.
 - `CLAUDE.md` — orientation + established results + open task, for picking
   this up in an agentic coding session.
-- `results/` — sweep outputs go here (currently empty; the pilot sweep's
-  numbers are in NOTES.md and the notebook, not checked in as data yet).
+- `results/` — sweep outputs: `sweep_full.parquet` (raw), 
+  `sweep_full_classified.parquet` (regime-labeled, joined with image_ratio),
+  `sweep_summary.csv`, `image_ratios.csv`.
+- `public/` — placeholder static page for a future GitHub Pages export of
+  sweep results.
 
 ## Setup
 
@@ -44,5 +53,8 @@ divergence_stats(field)   # structured, persistent disagreement -- not noise, no
 ```
 
 ## Status
-Pilot-scale (11 rules, hand-picked pairs, 1 seed each). The open task is
-the full 256-rule exhaustive sweep — see `CLAUDE.md`.
+Full 256-rule, 32,640-pair exhaustive sweep complete (5 seeds/pair) — see
+`results/` and `CLAUDE.md`. Current open threads: validating the
+provisional regime-classification thresholds against the real
+compressibility distribution, and the new instruments (absential view,
+second-order memory, meta-evolution) described in `NOTES.md` section 6.

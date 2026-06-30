@@ -52,29 +52,64 @@ first, they carry the math. Full interpretive writeup and citations are in
    under rules 184/250 still converge to the identical all-ones fixed point
    by step ~12.
 
-4. **Pilot sweep finding** (`classify.sweep`, n=11 rules, 1 seed/pair — small,
-   treat as suggestive not settled): presence of a Class III (chaotic) rule
-   in a pair predicts noise-like divergence almost regardless of its partner
-   — chaos dominates the pairing. Class II–II pairs are the most
-   structured/placid. The drain mechanism correlates with low `image_ratio`
-   but is **not fully predicted by it alone** — rule 4 (image_ratio 0.051)
-   drains to zero against rules 30, 126, 54, 110, but *not* against rule 18,
-   despite rule 18 and rule 126 having identical image_ratio (0.135). Don't
-   treat image_ratio as sufficient on its own; the actual mechanism is a
-   finer structural compatibility between the specific pair, closer in spirit
-   to Moore–Boykett's permutivity conditions than to a scalar score.
+4. **Full exhaustive sweep, done** (was the open task, now complete — pilot
+   findings below are superseded by this). All 256 rules, all 32,640
+   unordered pairs, seeds (1,2,3,4,5), n=100, steps=100. Run via
+   `scripts/run_full_sweep.py` (multiprocessing, checkpointed) →
+   `results/sweep_full.parquet`; regime-classified and joined with
+   per-rule `image_ratio` via `scripts/aggregate_sweep.py` →
+   `results/sweep_full_classified.parquet` + `results/sweep_summary.csv`.
+   Regime counts: **structured 14751 (45%)**, crystalline 7302 (22%),
+   noisy 5414 (17%), drain 4009 (12%), commute 1164 (4%). Structured
+   divergence — the regime with no single-rule analog — is the *modal*
+   outcome at full scale, not a rare special case. Mean
+   `min(image_ratio_a, image_ratio_b)` by regime: drain 0.214, structured
+   0.195, commute 0.245, crystalline 0.140, noisy 0.319 — drain's
+   image_ratio range overlaps heavily with crystalline and structured,
+   reconfirming at full scale (not just the rule-4 counterexample) that
+   image_ratio alone does not cleanly separate the regimes.
+   `classify.classify_regime`'s thresholds (`CRYSTALLINE_COMPRESSIBILITY`,
+   `NOISY_COMPRESSIBILITY`) are still provisional — read off the
+   qualitative pilot description, not fit to this distribution. Sanity-
+   checking/refitting those cut points against the real compressibility
+   histogram is good follow-up work before trusting the regime counts
+   above too precisely.
 
-## Open task
-**Full exhaustive sweep**: all 256 elementary rules, ~32,640 unordered
-pairs, multiple seeds each (the pilot used 1 seed/pair, which is noisy).
-Use `classify.sweep(rules={i: None for i in range(256)}, seeds=(1,2,3,4,5))`
-or similar. This is fully tractable with the vectorized engine. Write
-results to `results/` (e.g. as a parquet/csv with columns rule_a, rule_b,
-final, peak, compressibility, drained, mean) rather than holding everything
-in memory or dumping it into a notebook cell. Worth then re-running the
-class-pair aggregation in `classify.WOLFRAM_CLASS` style across the full
-sweep once results exist, since the n=11 pilot's class labels are informal
-and the sample per cell was small (1–12 pairs).
+## New instruments (added 2026-06-30, from a separate chat-interface exploration)
+
+Four directions came out of a parallel conversation; two are implemented,
+one is a clear extension, one is intentionally left open. See `NOTES.md`
+section 6 for the full writeup and citations.
+
+- **Absential field** (`metrics.absential_field`, `operators.absential_trajectory`)
+  — cells that are off but adjacent to an on cell (closed-neighborhood
+  dilation minus the live set), distinct from "void" cells with no live
+  neighbor. Candidate fast Class-IV / structure detector: run
+  `classify.compressibility` on an absential-field trajectory instead of
+  on `G`. Implemented, not yet validated against known Class I-IV rules.
+- **Second-order / reversible memory** (`secondorder.py`) — Margolus-Fredkin
+  style `S(t+1) = phi(S(t)) XOR S(t-1)`. Implemented and composable with
+  the rest of the package (e.g. feeding `D(t-1)` in as the memory term
+  instead of raw `S(t-1)` is a natural unimplemented variant).
+- **Meta-evolution / rules birthing rules** (`metaevolution.py`) — each
+  generation derives a child rule from the current state via a generator
+  function, classifies the parent→child handoff with `classify_regime`,
+  then (replace mode) adopts the child and evolves under it.
+  `population_count_generator` (deliberately the crudest possible
+  generator) reliably wanders through noisy/structured handoffs and then
+  locks into a small stable cycle in rule space — confirmed on repeated
+  runs here, though only with this one crude generator. Open follow-up:
+  try richer generators (built from `absential_field`, `G(S)`, or `D(S)`
+  sampled at a few positions) and compare time-to-cycle / cycle diversity
+  across them — see `metaevolution.py`'s module docstring.
+- **Non-uniform / heterogeneous CA** (rule space sharing state's
+  dimensionality, i.e. per-cell rules instead of one global rule) — open,
+  not implemented. Historically grounded (von Neumann's self-reproducing
+  automaton carried construction instructions as patterns in the same
+  substrate they acted on) but genuinely unresolved how to make `rule` a
+  first-class citizen of the same `(steps, n)`-shaped space as `state`
+  for the *elementary* (8-bit global rule) case used everywhere else in
+  this package.
 
 ## Conventions
 - Use `src/groovy/ca.py`'s vectorized `apply_rule` for anything beyond toy
