@@ -271,6 +271,39 @@ Population count is close to the lowest-information generator possible.
 Swapping it for something built from the absential field, from `G(S)`, or
 from `D(S)` sampled at a few positions should plausibly produce both a
 larger reachable set of stable platforms and longer searches before
-locking in — a concrete, runnable first experiment (run the same lineage
-with a few different `g` functions, compare generations-to-cycle and
-cycle period), not yet done.
+locking in.
+
+**That experiment has now been run** (`scripts/build_findings_assets.py`,
+results in `results/metaevolution_generators.csv`): 5 generators × 8 seeds
+× 40-generation budget, all starting from rule 90. Every run locked into a
+cycle within budget, but mean generations-to-lock-in varied a lot by
+generator: `g90_popcount` (a deliberate degenerate control — G(·,90) ≡ 0
+for every state by the affine theorem, so this generator carries zero
+information) locks in almost immediately (~2 generations); `absential_count`
+~5.4; `g30_popcount` (same construction, but rule 30 is non-affine so this
+one *does* carry information) ~5.9; `population_count` ~9.1;
+`d90_sample` (8 bits sampled from `D(state, 90)`) explores longest, ~10.6
+generations before locking in. Small sample (8 seeds), one starting rule,
+one starting state distribution — call this suggestive, not settled — but
+the direction matches the hypothesis: richer/more-informative generators
+search longer before finding a stable platform, and the affine-degenerate
+control sits exactly where it should, at the floor. Good first empirical
+anchor for "representational capacity" as the thing that's actually being
+selected on.
+
+**Absential field as a Class-IV detector — tested, inconclusive so far.**
+Ran `absential_trajectory` against one canonical example each of class
+I/II/III/IV (rules 0, 4, 30, 110) and compared `compressibility` of the
+absential-field trajectory against compressibility of the raw state
+trajectory. Result: they track each other closely at this sample size
+(e.g. rule 110: raw 0.920 vs. absential 0.828; rule 30: raw 1.005 vs.
+absential 0.905) — the absential view is consistently a little more
+compressible than the raw state, but not dramatically, and not in an
+obviously class-discriminating way beyond what raw-state compressibility
+already shows. Doesn't confirm the original hypothesis (a "cheap fast
+Class-IV detector" distinct from existing diagnostics) on this small test.
+Worth a real test before discarding: more rules per class, the actual
+glider/still-life cases the hypothesis was framed around (gliders don't
+really exist as objects at the elementary-CA scale the same way they do
+in Conway's Life — the closer test would be a CA with known stable
+localized structures), not just four representative rules.

@@ -134,10 +134,13 @@ section 6 for the full writeup and citations.
 - `results/` — sweep outputs (parquet/csv) and generated figures. Treat
   this as data, not scratch space — name files so it's clear what
   parameters produced them (rule range, seed count, date if it matters).
-- `public/` — static GitHub Pages export (currently a placeholder). When
-  building this out, keep it a *consumer* of `results/` data (e.g. copy
-  or symlink generated JSON/CSV in, or have a small build step) rather
-  than a second place that recomputes sweeps.
+- `public/` — the GitHub Pages site (index/concepts/findings.html +
+  `assets/`). Built by `scripts/build_findings_assets.py`, which is a
+  *consumer* of `results/` data plus the script that runs the
+  absential-detector and meta-evolution-generator experiments and writes
+  every PNG the site embeds — keep it that way rather than letting the
+  site recompute sweeps itself. `.claude/launch.json` has a static-server
+  config for `Claude_Preview`/local preview.
 - `NOTES.md` — the "why": citations, QM correspondence, the speculative
   interpretive thread. `CLAUDE.md` (this file) — the "what to build
   next" and established results to build on without re-deriving.

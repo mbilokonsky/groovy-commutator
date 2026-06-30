@@ -24,8 +24,13 @@ rules. Origin: https://liet-codes.github.io/wet-math/commutator.html
 - `results/` — sweep outputs: `sweep_full.parquet` (raw), 
   `sweep_full_classified.parquet` (regime-labeled, joined with image_ratio),
   `sweep_summary.csv`, `image_ratios.csv`.
-- `public/` — placeholder static page for a future GitHub Pages export of
-  sweep results.
+- `public/` — the GitHub Pages site: a landing page, a concepts page
+  (boolean calculus, the State&rarr;State shape, each instrument), and a
+  findings page (confidence-labeled results with visuals). Built by
+  `scripts/build_findings_assets.py`, which also runs the absential
+  detector / meta-evolution generator-comparison experiments that back the
+  findings page. Preview locally with
+  `python -m http.server 4173 --directory public`.
 
 ## Setup
 

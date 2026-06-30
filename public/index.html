@@ -4,31 +4,101 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Groovy Commutator</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      max-width: 640px;
-      margin: 4rem auto;
-      padding: 0 1.5rem;
-      line-height: 1.5;
-      color: #1a1a1a;
-    }
-    code { background: #f0f0f0; padding: 0.1em 0.4em; border-radius: 4px; }
-    a { color: #0b5fff; }
-  </style>
+  <meta name="description" content="An operator-commutator framework for cellular automata, generalized from single rules to relationships between pairs of rules.">
+  <link rel="stylesheet" href="assets/css/site.css">
 </head>
 <body>
-  <h1>Groovy Commutator</h1>
-  <p>
-    An operator-commutator framework for cellular automata, generalized
-    from a single rule's self-commutator to the relationship between
-    pairs of rules.
-  </p>
-  <p>
-    This page is a placeholder for an interactive GitHub Pages export
-    (sweep results, regime visualizations). The library and research
-    notes live in the
-    <a href="https://github.com/mbilokonsky/groovy-commutator">source repo</a>.
-  </p>
+  <header class="site-header">
+    <nav class="site-nav">
+      <a class="brand" href="index.html">Groovy Commutator</a>
+      <div class="links">
+        <a href="index.html" aria-current="page">Home</a>
+        <a href="concepts.html">Concepts</a>
+        <a href="findings.html">Findings</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="eyebrow">cellular automata &middot; operator commutators</div>
+      <h1>What happens when two simple rules don't agree on what happens next?</h1>
+      <p class="lead">
+        Take the quantum-mechanical idea of a commutator &mdash; "does the order
+        of two operations matter?" &mdash; and ask it of the simplest dynamical
+        systems there are: one-dimensional elementary cellular automata. The
+        answer turns out to have five distinct shapes, one of which has no
+        analog at all for a single rule acting on itself.
+      </p>
+      <div class="cta-row">
+        <a class="button primary" href="concepts.html">Start with the concepts &rarr;</a>
+        <a class="button secondary" href="findings.html">Jump to findings</a>
+      </div>
+
+      <div class="formula-block">
+        <div>D(S) = S &oplus; &phi;(S)&nbsp;&nbsp;&nbsp;<span style="color:#5a5650">differentiation</span></div>
+        <div>E(S) = &phi;(S)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#5a5650">evolution</span></div>
+        <div>G(S) = C(D(E(S)), E(D(S)))&nbsp;&nbsp;<span style="color:#5a5650">the commutator</span></div>
+      </div>
+
+      <p>
+        <code>G(S)</code> is, literally, the operator commutator
+        <code>[D, E]</code> evaluated at state <code>S</code> &mdash; the same
+        construction behind <code>[x&#770;, p&#770;] = i&#295;</code> in quantum
+        mechanics, just over GF(2) instead of the complex numbers. From there
+        the natural next question is what happens between two
+        <em>different</em> rules, run against the same starting state in both
+        orders &mdash; which is where the real exploration starts.
+      </p>
+    </section>
+
+    <section>
+      <h2>At a glance</h2>
+      <div class="summary-grid">
+        <div class="stat">
+          <div class="num">256</div>
+          <div class="label">elementary CA rules swept</div>
+        </div>
+        <div class="stat">
+          <div class="num">32,640</div>
+          <div class="label">unordered rule pairs, 5 seeds each</div>
+        </div>
+        <div class="stat">
+          <div class="num">5</div>
+          <div class="label">empirical regimes a pair can fall into</div>
+        </div>
+      </div>
+      <p>
+        Full breakdown, the regime that turned out to dominate, and where the
+        new instruments (absential cells, reversible memory, rules birthing
+        rules) currently stand are all on the <a href="findings.html">findings
+        page</a>. If the vocabulary above (<code>D</code>, <code>E</code>,
+        <code>G</code>, "regime") is new, the <a href="concepts.html">concepts
+        page</a> builds it from scratch, one piece at a time.
+      </p>
+    </section>
+
+    <section>
+      <h2>Where this comes from</h2>
+      <p>
+        The construction originates from a small interactive demo,
+        <a href="https://liet-codes.github.io/wet-math/commutator.html">wet-math's commutator page</a>,
+        which proposed <code>G</code> as a discrete "fingerprint of aliveness"
+        across Wolfram's CA classes. This project took that single-rule
+        construction, found it had a clean proof (the affine theorem &mdash;
+        see Concepts), and then generalized it to ask the same question of
+        <em>pairs</em> of rules instead of one rule against itself. That's
+        where the five regimes, the full sweep, and the newer instruments
+        all came from.
+      </p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="inner">
+      Source, library code, and full research notes live in the
+      <a href="https://github.com/mbilokonsky/groovy-commutator">GitHub repository</a>.
+    </div>
+  </footer>
 </body>
 </html>
