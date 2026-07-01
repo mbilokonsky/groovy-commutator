@@ -1177,6 +1177,18 @@ export default function Concepts() {
                 Reversibility check, run live in your browser right now: {secondOrderStatus}
               </p>
             </div>
+            <p style={{ ...pBody, marginTop: '1.1rem' }}>
+              One generalization worth knowing about: pass the memory through a rule of its own before XOR-ing it
+              in &mdash; <code className="gc-code">S(t+1) = &phi;(S(t)) &oplus; &mu;(S(t&minus;1))</code>. The
+              construction stays reversible exactly when &mu; is itself invertible, and only six elementary rules
+              are invertible on every ring size (15, 51, 85, 170, 204, 240 &mdash; the identity, complement, and
+              shift family; the standard construction above is just &mu; = 204, the identity). The natural-sounding
+              variant &ldquo;feed the <em>derivative</em> of the past in as the memory&rdquo; is the special case
+              &mu; = &phi;&oplus;204 &mdash; so it keeps reversibility only for &phi; &isin; {'{'}0, 60, 102, 153,
+              195, 255{'}'}, essentially the additive family. For every other rule, D-memory trades reversibility
+              away. Verified exhaustively in{' '}
+              <code className="gc-code">scripts/experiment_memory_variants.py</code>.
+            </p>
           </section>
         </div>
 

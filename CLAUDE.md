@@ -214,9 +214,16 @@ section 6 for the full writeup and citations.
   field itself remains a fine instrument (it IS elementary rule 50, per
   the prehoc collapse theorem).
 - **Second-order / reversible memory** (`secondorder.py`) — Margolus-Fredkin
-  style `S(t+1) = phi(S(t)) XOR S(t-1)`. Implemented and composable with
-  the rest of the package (e.g. feeding `D(t-1)` in as the memory term
-  instead of raw `S(t-1)` is a natural unimplemented variant).
+  style `S(t+1) = phi(S(t)) XOR S(t-1)`, plus the generalized
+  `run_second_order_mu`: memory passed through an arbitrary rule mu.
+  Exact result (2026-07-01, `scripts/experiment_memory_variants.py` →
+  `site/src/data/memory_variants.json`): reversibility holds iff mu is
+  invertible; only {15, 51, 85, 170, 204, 240} are invertible at every
+  ring size (others sneak in at particular n — e.g. 14-16 bijective
+  rules at odd n, exactly 6 at n=12); the D-memory variant is
+  mu = phi^204 (prehoc identity), hence reversible exactly for
+  phi ∈ {0, 60, 102, 153, 195, 255}. Backward reconstruction verified
+  for all six; docstring carries the derivation.
 - **Meta-evolution / rules birthing rules** (`metaevolution.py`) — each
   generation derives a child rule from the current state via a generator
   function, classifies the parent→child handoff with `classify_regime`,
