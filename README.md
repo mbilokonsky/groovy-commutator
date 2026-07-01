@@ -7,13 +7,18 @@ rules. Origin: https://liet-codes.github.io/wet-math/commutator.html
 ## Layout
 
 - `src/groovy/` — the actual library. Start with `operators.py`'s
-  docstring, then `ca.py`, `metrics.py`, `classify.py`. `secondorder.py`
-  and `metaevolution.py` are newer extensions (reversible memory CA,
-  rules-birthing-rules) — see `NOTES.md` section 6.
+  docstring, then `ca.py`, `metrics.py`, `classify.py`. Newer extensions,
+  each with the math in its module docstring: `secondorder.py`
+  (reversible memory, incl. the generalized-μ reversibility result),
+  `metaevolution.py` (rules-birthing-rules), `prehoc.py` (4-input rules,
+  the collapse theorem, coupled layers), `nonuniform.py` (per-cell rule
+  fields, the second collapse theorem, state-gated rule transport),
+  `ca2d.py` (Life-like 2D engine) — see `NOTES.md` sections 6–8.
 - `scripts/` — runnable sweep/precompute scripts (`run_full_sweep.py`,
   `precompute_image_ratios.py`, `aggregate_sweep.py`) that write to
-  `results/`. Use these instead of `classify.sweep` for anything beyond
-  pilot scale.
+  `results/`, plus one `experiment_*.py` per data-backed claim on the
+  site's questions page — each writes a small JSON to `site/src/data/`.
+  Use these instead of `classify.sweep` for anything beyond pilot scale.
 - `notebooks/01_exploration.ipynb` — narrated walkthrough: the affine
   theorem, the four single-rule regimes, the five pair regimes, the drain
   mechanism, the pilot sweep.

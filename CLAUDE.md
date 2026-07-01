@@ -184,8 +184,12 @@ first, they carry the math. Full interpretive writeup and citations are in
      the same selection direction (final pool enriched 2.1× at popcount
      0, depleted ~3× at the restless end, restless bit 0.50 → 0.25).
      The quiescence pressure belongs to the gate (only live cells get
-     overwritten), not the variation mechanism. Remaining caveats: one
-     lattice size; correlation, not proven mechanism.
+     overwritten), not the variation mechanism. Plateau-vs-n scaling
+     (`scripts/experiment_nonuniform_scaling.py`): median plateau
+     10/21.5/36.5/63/96.5 distinct rules at n=50/100/200/400/800,
+     log-log slope 0.81, each verified flat out to t=1600 — genuinely
+     stable polycultures at every size, sublinear in n. Remaining
+     caveats: 1D only; correlation, not proven mechanism.
 
 9. **Absential Class-IV detector: established negative (fair 2D test);
    affine theorem is dimension-free** (2026-07-01, `src/groovy/ca2d.py`

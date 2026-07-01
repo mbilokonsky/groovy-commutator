@@ -608,6 +608,10 @@ export default function Questions() {
             rules settles into one of five regimes (see Concepts for what each one means):
           </p>
           <RegimeBarChart />
+          <p className="gc-mono" style={{ fontSize: '0.72rem', color: 'var(--ink-soft)', margin: '0.5rem 0 0' }}>
+            * the drain count is known-inflated by a classifier artifact (honest census &asymp; 2,150) &mdash; see
+            the drain question below; the correction doesn't change which regime is largest.
+          </p>
           <p style={{ fontSize: '0.88rem', color: 'var(--ink-soft)', margin: '1rem 0 0' }}>
             <strong style={{ color: 'var(--ink)' }}>What this says:</strong> structured divergence &mdash; the regime
             with no single-rule analog &mdash; was expected to be a narrow sliver between agreement and noise. At
@@ -992,8 +996,11 @@ export default function Questions() {
             instead of ~20. Yet the selection direction survives even there: the final rule pool is enriched
             2.1&times; toward all-quiet rules and depleted 3&times; at the restless end, despite XOR-mixing itself
             having no bias about quietness. The push toward quiescence belongs to the <em>gate</em> (only live
-            cells get overwritten), not to the variation mechanism. Still one lattice size, and still a measured
-            correlation rather than a proven mechanism &mdash; but no longer one scheme.
+            cells get overwritten), not to the variation mechanism. And the polyculture isn't a lattice-size
+            accident either: the plateau holds at every size tested and grows sublinearly with the ring
+            (median 10 / 21.5 / 36.5 / 63 / 96.5 distinct rules at n = 50&ndash;800, log-log slope &asymp; 0.8,
+            each verified flat out to 1,600 steps) &mdash; bigger worlds sustain more rules, but proportionally
+            fewer. What remains: a measured correlation rather than a proven mechanism, and 1D only.
           </p>
         </QuestionCard>
 
