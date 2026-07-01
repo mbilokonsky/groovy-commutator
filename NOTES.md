@@ -475,7 +475,14 @@ where uniform rules sit at the extremes) is consistent with what
 disordered-media intuition would predict, and gives the project a third
 route to structure besides rule-pairing and pre-hoc coupling.
 
-Open, flagged as such: other transport schemes (rightward, symmetric,
-majority-vote), whether the ~20-rule plateau scales with n, and whether
-the surviving ecology's composition is reproducible across transport
-schemes or is an artifact of leftward copy specifically.
+Transport-scheme robustness, now run (60 runs per scheme): the mirror
+scheme reproduces everything (symmetry control passes). The sharper probe
+— gated XOR-recombination, where a live cell's rule becomes the XOR of
+its neighbors' rules, i.e. variation that INVENTS rules rather than
+moving them — keeps the selection direction fully intact (final pool
+enriched 2.1x toward all-quiet, depleted ~3x at the restless end) while
+changing the ecology's shape (diversity plateau ~67 rules, 57% of cells
+carrying invented rules). The quiescence pressure is a property of the
+gate, not of the variation mechanism — which is exactly the
+selection/variation decomposition evolutionary theory would ask for.
+Still open: whether the plateau scales with n; 2D rule fields.
