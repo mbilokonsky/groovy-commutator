@@ -6,6 +6,7 @@ import thresholdData from '../data/threshold_check.json';
 import prehocData from '../data/prehoc_coupling.json';
 import nonuniformData from '../data/nonuniform.json';
 import absential2dData from '../data/absential_2d.json';
+import drainScalingData from '../data/drain_scaling.json';
 
 const REGIME_COUNTS = [
   { key: 'structured', count: 14751 },
@@ -900,8 +901,18 @@ export default function Questions() {
             min-image_ratio baseline: {drainData.auc_min_image_ratio}), and the crisp rule &ldquo;shared attractor
             of &le; {drainData.best_rule.max_image} states&rdquo; gets precision {drainData.best_rule.precision} /
             recall {drainData.best_rule.recall} &mdash; a 4,096-state toy computation predicting behavior at n=100.
-            The residual error is real (attractor structure does depend on ring size), but the mechanism question is
-            settled: it's entropy death into a <em>shared</em> grave, and you can see the grave from n=12.
+            The mechanism question is settled: it's entropy death into a <em>shared</em> grave, and you can see the
+            grave from n=12.
+          </p>
+          <p style={{ fontSize: '0.88rem', color: 'var(--ink-soft)', margin: '0.8rem 0 0' }}>
+            <strong style={{ color: 'var(--ink)' }}>Does the toy's size matter?</strong> The residual error was
+            first attributed to ring-size mismatch; measuring that attribution (same predictor at four ring sizes,
+            same sample) mostly <em>refutes</em> it: AUC{' '}
+            {drainScalingData.by_n.map((r, i) => (
+              <Fragment key={r.n}>{i > 0 && ' · '}<span className="gc-mono">{r.auc_image.toFixed(3)}</span> at n={r.n}</Fragment>
+            ))}. Even the 256-state computation nearly matches the 16,384-state one &mdash; the structure that
+            predicts convergence is visible at any ring size, and the remaining error must come mostly from the
+            ground truth itself (five sampled seeds per pair at n=100), not from the predictor's scale.
           </p>
         </QuestionCard>
 

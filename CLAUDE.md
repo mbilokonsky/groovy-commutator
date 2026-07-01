@@ -96,8 +96,15 @@ first, they carry the math. Full interpretive writeup and citations are in
      structure predicting n=100 sampled behavior. The rule-4
      counterexample fully resolves: 4/30, 4/126, 4/54 collapse to shared
      images of 3, 1, 1 states; 4/18 keeps 67 states at overlap 0.47 and
-     doesn't drain. Residual predictor error is real (attractor structure
-     depends on ring size), flagged as such on the site.
+     doesn't drain. The residual predictor error is NOT mainly ring-size
+     mismatch — measured (`scripts/experiment_drain_scaling.py` →
+     `site/src/data/drain_scaling.json`, all 2,150 converged + 6,000
+     sampled non-converged): AUC 0.893 / 0.912 / 0.908 / 0.915 at
+     n = 8/10/12/14. Saturates by n≈10; even 256 states nearly matches
+     16,384. Remaining error is dominated by the ground truth (5 sampled
+     seeds per pair at n=100), not the predictor's scale. The best
+     operating point does sharpen slowly with n (F1 0.84 at n=8 → 0.88
+     at n=14 with threshold scaled to 64 states).
 
 6. **Classifier thresholds validated against the full distribution**
    (2026-07-01, `scripts/experiment_threshold_check.py` →
