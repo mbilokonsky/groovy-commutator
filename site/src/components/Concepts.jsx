@@ -82,6 +82,8 @@ const TOC = [
   ['#absential', 'Absential cells'],
   ['#secondorder', 'Reversible memory'],
   ['#coupling', 'Coupling rules'],
+  ['#prehoc', 'The fourth input'],
+  ['#rulefield', 'Rule fields'],
 ];
 
 const pill = { fontFamily: "'IBM Plex Mono',monospace", fontSize: '0.76rem', fontWeight: 600, textDecoration: 'none', background: 'var(--bg-alt)', color: 'var(--ink-soft)', padding: '0.35rem 0.7rem', borderRadius: 999 };
@@ -342,6 +344,104 @@ function RuleWalkthrough() {
         nothing hidden in it beyond what you just did by hand above.
       </p>
       </>}
+    </div>
+  );
+}
+
+// Compact live demo of two mutually pre-hoc coupled layers -- the mechanism
+// is explained in the section around it; the full experimental findings
+// live on the questions page. Self-contained (imports the engine itself)
+// so it doesn't touch the sticky rule panel's plumbing.
+function PrehocMiniDemo() {
+  const [seed, setSeed] = useState(3);
+  const engineRef = useRef(null);
+  const aRef = useRef(null);
+  const bRef = useRef(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    import('../lib/groovy-engine.js').then((engine) => {
+      if (cancelled) return;
+      engineRef.current = engine;
+      draw();
+    });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => { draw(); });
+
+  function draw() {
+    const engine = engineRef.current;
+    if (!engine) return;
+    const { randomState, coupledTrajectory, rule4FromPair, renderFieldToCanvas } = engine;
+    const res = coupledTrajectory(randomState(90, seed), randomState(90, seed + 101),
+      rule4FromPair(77, 55), rule4FromPair(44, 23), 90);
+    if (aRef.current) renderFieldToCanvas(aRef.current, res.a, ON_COLOR, '#f1ead9');
+    if (bRef.current) renderFieldToCanvas(bRef.current, res.b, 'oklch(0.5 0.1 195)', '#f1ead9');
+  }
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.2rem', flexWrap: 'wrap' }}>
+      {[[aRef, 'layer A: rule 77 or 55, chosen per cell by B'],
+        [bRef, 'layer B: rule 44 or 23, chosen per cell by A']].map(([ref, label]) => (
+        <div key={label} style={{ width: 160 }}>
+          <canvas className="gc-field" ref={ref} style={{ width: 160, height: 160 }}></canvas>
+          <div className="gc-mono" style={{ fontSize: '0.66rem', color: INK_SOFT, marginTop: 3 }}>{label}</div>
+        </div>
+      ))}
+      <button onClick={() => setSeed((s) => s + 1)} className="gc-mono"
+        style={{ fontSize: '0.72rem', fontWeight: 700, padding: '0.4rem 0.8rem', borderRadius: 7, border: '1px solid var(--rule)', background: '#fff', color: INK_SOFT, cursor: 'pointer' }}>
+        reroll ↻
+      </button>
+    </div>
+  );
+}
+
+// Compact live demo of state-gated rule transport (non-uniform CA) --
+// mechanism here, findings on the questions page.
+function RuleFieldMiniDemo() {
+  const [seed, setSeed] = useState(2);
+  const engineRef = useRef(null);
+  const stateRef = useRef(null);
+  const rulesRef = useRef(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    import('../lib/groovy-engine.js').then((engine) => {
+      if (cancelled) return;
+      engineRef.current = engine;
+      draw();
+    });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => { draw(); });
+
+  function draw() {
+    const engine = engineRef.current;
+    if (!engine) return;
+    const { randomState, mulberry32, gatedDiffusionTrajectory, renderFieldToCanvas, renderByteFieldToCanvas } = engine;
+    const s0 = randomState(90, seed);
+    const rng = mulberry32(seed + 40);
+    const rf0 = Array.from({ length: 90 }, () => Math.floor(rng() * 256));
+    const res = gatedDiffusionTrajectory(s0, rf0, 90);
+    if (stateRef.current) renderFieldToCanvas(stateRef.current, res.states, ON_COLOR, '#f1ead9');
+    if (rulesRef.current) renderByteFieldToCanvas(rulesRef.current, res.rules);
+  }
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.2rem', flexWrap: 'wrap' }}>
+      {[[stateRef, 'the state, each cell under its own rule'],
+        [rulesRef, 'the rule field — one color per rule value']].map(([ref, label]) => (
+        <div key={label} style={{ width: 160 }}>
+          <canvas className="gc-field" ref={ref} style={{ width: 160, height: 160 }}></canvas>
+          <div className="gc-mono" style={{ fontSize: '0.66rem', color: INK_SOFT, marginTop: 3 }}>{label}</div>
+        </div>
+      ))}
+      <button onClick={() => setSeed((s) => s + 1)} className="gc-mono"
+        style={{ fontSize: '0.72rem', fontWeight: 700, padding: '0.4rem 0.8rem', borderRadius: 7, border: '1px solid var(--rule)', background: '#fff', color: INK_SOFT, cursor: 'pointer' }}>
+        reroll ↻
+      </button>
     </div>
   );
 }
@@ -1116,6 +1216,74 @@ export default function Concepts() {
             them &mdash; is exactly the kind of thing this construction makes askable; see the{' '}
             <a href="questions.html" style={{ color: 'var(--accent)' }}>questions page</a> for what's actually been
             found.
+          </p>
+        </section>
+
+        {/* THE FOURTH INPUT (pre-hoc composition) */}
+        <section id="prehoc" style={{ padding: '1.6rem 0', borderTop: '1px solid var(--rule)' }}>
+          <div style={sectionKicker}>Instrument &mdash; newer</div>
+          <h2 style={h2Style}>The fourth input (pre-hoc composition)</h2>
+          <p style={pBody}>
+            Every composition above &mdash; D, reversible memory, coupling &mdash; computes two finished fields and
+            then XORs or compares them: composition <em>after</em> the rule has run. There's a second, more invasive
+            option: give the rule's own lookup table a <strong>fourth input</strong>, alongside left/self/right,
+            before &phi; is ever evaluated. One extra binary input doubles the table from 8 entries to 16 &mdash;
+            and the doubled table has a tidy reading:
+          </p>
+          <div style={formulaBlock}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', margin: '0.15em 0' }}><span>f(l, c, r, x) = x ? &phi;<sub>1</sub>(l,c,r) : &phi;<sub>0</sub>(l,c,r)</span><span style={{ color: 'var(--ink-soft)', fontSize: '0.7rem' }}>a 16-entry table IS a rule pair</span></div>
+          </div>
+          <p style={pBody}>
+            Every 4-input rule is exactly an <em>ordered pair of elementary rules</em>, with x choosing per cell,
+            per step, which of the two applies. Only 512 of the 65,536 possible tables can be rewritten as
+            &ldquo;compute one rule, then XOR x in afterward&rdquo; &mdash; the other 99.2% are genuinely new
+            territory, unreachable by post-hoc composition.
+          </p>
+          <p style={pBody}>
+            <strong>But there's a trap, and it's a theorem.</strong> If the fourth input is computed from the{' '}
+            <em>same state at the same time</em> &mdash; say x = D(S), or x = the absential field A(S) from a few
+            sections up &mdash; the whole thing collapses back into a single ordinary elementary rule. (Two facts
+            fall out of proving this: A(S) <em>is</em> elementary rule 50, and D(&middot;,&psi;) <em>is</em>{' '}
+            elementary rule &psi;&oplus;204.) The fourth input only escapes the collapse when it comes from another{' '}
+            <em>time</em> (that's reversible memory, above) or another <em>trajectory</em> &mdash; a second layer
+            with its own dynamics. Two layers, each using the other as its fourth input, live:
+          </p>
+          <PrehocMiniDemo />
+          <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', maxWidth: '60ch', margin: '1.1rem 0 0' }}>
+            All four component rules here (77, 55, 44, 23) are frozen or periodic on their own &mdash; the structure
+            you're seeing belongs to the coupling, not to any part. What that means at scale is on the{' '}
+            <a href="questions.html#extended-neighborhoods" style={{ color: 'var(--accent)' }}>questions page</a>.
+          </p>
+        </section>
+
+        {/* RULE FIELDS (non-uniform CA) */}
+        <section id="rulefield" style={{ padding: '1.6rem 0', borderTop: '1px solid var(--rule)' }}>
+          <div style={sectionKicker}>Instrument &mdash; newest</div>
+          <h2 style={h2Style}>Rule fields (a rule per cell)</h2>
+          <p style={pBody}>
+            One more wall to knock down. Everything above still assumes one shared global rule &mdash; the rule is
+            a fixed number sitting <em>outside</em> the State &rarr; State world everything else lives in.
+            Non-uniform CA give every cell its <em>own</em> rule: the rule field is now an array the same shape as
+            the state, its 8 bit-planes are literally state-shaped binary fields, and every instrument on this page
+            applies to it unchanged. This is the field's founding idea, not an exotic one &mdash; von Neumann's
+            self-reproducing automaton stored its construction instructions as patterns in the same substrate they
+            acted on.
+          </p>
+          <p style={pBody}>
+            The same trap as the fourth input appears here, one level up: if each cell's rule is <em>re-read from
+            the state around it every step</em> (&ldquo;the state writes its own rules&rdquo;), the whole system is
+            provably just one uniform CA with a bigger neighborhood. Self-reference at a single time step is always
+            just a bigger neighborhood. The rule field becomes a genuine second citizen only when it{' '}
+            <em>persists</em> &mdash; when it has memory. The simplest honest version: rules stay put where the
+            state is dead, and a live cell copies its left neighbor's rule over its own. The state gates transport
+            of rules through the medium the rules themselves animate:
+          </p>
+          <RuleFieldMiniDemo />
+          <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', maxWidth: '60ch', margin: '1.1rem 0 0' }}>
+            Watch the right panel: rule territories hold where the state is quiet and get invaded where it's
+            active. That asymmetry turns out to be a selection pressure &mdash; see the{' '}
+            <a href="questions.html#rule-as-state" style={{ color: 'var(--accent)' }}>questions page</a> for the
+            evolution that falls out of it.
           </p>
         </section>
 
