@@ -228,13 +228,20 @@ section 6 for the full writeup and citations.
   generation derives a child rule from the current state via a generator
   function, classifies the parent→child handoff with `classify_regime`,
   then (replace mode) adopts the child and evolves under it.
-  `population_count_generator` (deliberately the crudest possible
-  generator) reliably wanders through noisy/structured handoffs and then
-  locks into a small stable cycle in rule space — confirmed on repeated
-  runs here, though only with this one crude generator. Open follow-up:
-  try richer generators (built from `absential_field`, `G(S)`, or `D(S)`
-  sampled at a few positions) and compare time-to-cycle / cycle diversity
-  across them — see `metaevolution.py`'s module docstring.
+  The generator comparison is now run at scale (2026-07-01,
+  `scripts/experiment_metaevolution_scale.py` →
+  `results/metaevolution_scale.csv` + `site/src/data/metaevolution.json`:
+  5 generators × 40 seeds × 3 starting rules = 600 lineages).
+  Established: the affine-degenerate control G(·,90) locks in at exactly
+  2.0 generations with zero variance (theorem-pinned floor); every
+  information-carrying generator searches 3-5× longer with cleanly
+  separated bootstrap CIs (g30 5.9 < absential 7.1 < d90_sample 10.1 ≈
+  population_count 10.7); ordering stable across starting rules 90/30/110.
+  CORRECTION to the old 8-seed reading: "richer generator → longer
+  search" does NOT hold beyond the zero/nonzero information split —
+  population count ties the 8-bit derivative sample at the top. Lock-in
+  is 95-100%; the ~5% of population_count lineages that ran the full
+  40-generation budget without cycling are budget-bound unknowns.
 - **Non-uniform / heterogeneous CA** (rule space sharing state's
   dimensionality, i.e. per-cell rules instead of one global rule) — now
   implemented, see established result 8 (`nonuniform.py`). The

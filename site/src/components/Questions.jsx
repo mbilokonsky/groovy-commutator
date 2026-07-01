@@ -7,6 +7,7 @@ import prehocData from '../data/prehoc_coupling.json';
 import nonuniformData from '../data/nonuniform.json';
 import absential2dData from '../data/absential_2d.json';
 import drainScalingData from '../data/drain_scaling.json';
+import metaevolutionData from '../data/metaevolution.json';
 
 const REGIME_COUNTS = [
   { key: 'structured', count: 14751 },
@@ -21,13 +22,13 @@ const TOTAL_PAIRS = 32640;
 // results/image_ratios.csv / scripts/precompute_image_ratios.py.
 const IMAGE_RATIOS = [6.103515625e-05,0.0513916015625,0.01287841796875,0.16033935546875,0.05145263671875,0.15875244140625,0.184326171875,0.38092041015625,0.01287841796875,0.17230224609375,0.05133056640625,0.16033935546875,0.05145263671875,0.2027587890625,0.30950927734375,1.0,0.01287841796875,0.16033935546875,0.1346435546875,0.16033935546875,0.184326171875,0.38092041015625,0.50689697265625,0.201904296875,0.05133056640625,0.45001220703125,0.42987060546875,0.3094482421875,0.30950927734375,0.3095703125,0.95037841796875,0.38092041015625,0.05145263671875,0.2027587890625,0.05145263671875,0.38092041015625,0.13470458984375,0.47991943359375,0.3094482421875,0.3094482421875,0.184326171875,0.4437255859375,0.30950927734375,0.3095703125,0.3094482421875,0.9921875,0.0513916015625,0.16033935546875,0.05145263671875,0.38092041015625,0.30950927734375,1.0,0.3094482421875,0.3094482421875,0.38079833984375,0.16033935546875,0.30950927734375,0.4539794921875,0.380859375,0.38092041015625,0.5,0.45001220703125,0.47222900390625,0.16033935546875,0.01287841796875,0.17230224609375,0.05133056640625,0.45001220703125,0.05145263671875,0.2027587890625,0.30950927734375,0.3095703125,0.1346435546875,0.42620849609375,0.42987060546875,0.9921875,0.30950927734375,0.201904296875,0.380859375,0.2027587890625,0.05133056640625,0.16033935546875,0.42987060546875,0.3094482421875,0.30950927734375,1.0,0.95037841796875,0.38092041015625,0.42987060546875,0.9921875,0.25,0.47991943359375,0.380859375,0.2027587890625,0.39971923828125,0.15875244140625,0.184326171875,0.4437255859375,0.30950927734375,0.4539794921875,0.3094482421875,0.9921875,0.5,0.45001220703125,0.50689697265625,1.0,0.95037841796875,0.4437255859375,0.38079833984375,0.42620849609375,0.47222900390625,0.17230224609375,0.30950927734375,0.3095703125,0.380859375,0.38092041015625,0.0513916015625,0.16033935546875,0.47222900390625,0.16033935546875,0.95037841796875,0.4437255859375,0.39971923828125,0.2027587890625,0.47222900390625,0.17230224609375,0.13470458984375,0.0513916015625,0.0513916015625,0.13470458984375,0.17230224609375,0.47222900390625,0.2027587890625,0.39971923828125,0.4437255859375,0.95037841796875,0.16033935546875,0.47222900390625,0.16033935546875,0.0513916015625,0.38092041015625,0.380859375,0.3095703125,0.30950927734375,0.17230224609375,0.47222900390625,0.42620849609375,0.38079833984375,0.4437255859375,0.95037841796875,1.0,0.50689697265625,0.45001220703125,0.5,0.9921875,0.3094482421875,0.4539794921875,0.30950927734375,0.4437255859375,0.184326171875,0.15875244140625,0.39971923828125,0.2027587890625,0.380859375,0.47991943359375,0.25,0.9921875,0.42987060546875,0.38092041015625,0.95037841796875,1.0,0.30950927734375,0.3094482421875,0.42987060546875,0.16033935546875,0.05133056640625,0.2027587890625,0.380859375,0.201904296875,0.30950927734375,0.9921875,0.42987060546875,0.42620849609375,0.1346435546875,0.3095703125,0.30950927734375,0.2027587890625,0.05145263671875,0.45001220703125,0.05133056640625,0.17230224609375,0.01287841796875,0.16033935546875,0.47222900390625,0.45001220703125,0.5,0.38092041015625,0.380859375,0.4539794921875,0.30950927734375,0.16033935546875,0.38079833984375,0.3094482421875,0.3094482421875,1.0,0.30950927734375,0.38092041015625,0.05145263671875,0.16033935546875,0.0513916015625,0.9921875,0.3094482421875,0.3095703125,0.30950927734375,0.4437255859375,0.184326171875,0.3094482421875,0.3094482421875,0.47991943359375,0.1346435546875,0.38092041015625,0.05145263671875,0.2027587890625,0.05145263671875,0.38092041015625,0.95037841796875,0.3095703125,0.30950927734375,0.3094482421875,0.42987060546875,0.45001220703125,0.05133056640625,0.201904296875,0.50689697265625,0.38092041015625,0.184326171875,0.16033935546875,0.1346435546875,0.16033935546875,0.01287841796875,1.0,0.30950927734375,0.2027587890625,0.05145263671875,0.16033935546875,0.05133056640625,0.17230224609375,0.01287841796875,0.38092041015625,0.184326171875,0.15875244140625,0.05145263671875,0.16033935546875,0.01287841796875,0.0513916015625,6.103515625e-05];
 
-const GENERATOR_DATA = [
-  { key: 'population_count', label: 'population count', vals: [8,9,15,7,7,12,9,6] },
-  { key: 'absential_count', label: 'absential count', vals: [3,6,5,9,6,7,2,5] },
-  { key: 'g90_popcount', label: 'G(·,90) control', vals: [2,2,2,2,2,2,2,2] },
-  { key: 'g30_popcount', label: 'G(·,30)', vals: [3,5,7,7,7,12,4,2] },
-  { key: 'd90_sample', label: 'D(state,90) sample', vals: [3,4,8,5,6,39,11,9] },
-];
+const GENERATOR_LABELS = {
+  population_count: 'population count',
+  absential_count: 'absential count',
+  'g90_popcount (degenerate)': 'G(·,90) control',
+  g30_popcount: 'G(·,30)',
+  d90_sample: 'D(state,90) sample',
+};
 
 const ABSENTIAL_PUBLISHED = [
   { rule: 0, cls: 'I', pubRaw: '0.020', pubAbs: '0.020' },
@@ -103,21 +104,25 @@ function ImageRatioHistogram() {
 }
 
 function GeneratorBarChart() {
-  const genMeans = GENERATOR_DATA.map((g) => ({ label: g.label, mean: g.vals.reduce((a, b) => a + b, 0) / g.vals.length }));
-  const maxMean = Math.max(...genMeans.map((g) => g.mean));
-  const chartLeft = 150, chartWidth = 290, rowH = 36, rowGap = 8;
+  const gens = metaevolutionData.generators;
+  const maxVal = Math.max(...gens.map((g) => g.ci_high));
+  const chartLeft = 150, chartWidth = 250, rowH = 36, rowGap = 8;
+  const x = (v) => chartLeft + (v / maxVal) * chartWidth;
   return (
     <svg viewBox="0 0 520 220" style={{ width: '100%', height: 'auto', maxWidth: 480, display: 'block' }}>
-      {genMeans.map((g, i) => {
-        const w = (g.mean / maxMean) * chartWidth;
+      {gens.map((g, i) => {
         const y = i * (rowH + rowGap);
         const labelY = y + (rowH - 10) / 2 + 4;
+        const barH = rowH - 10;
         return (
-          <g key={g.label}>
-            <rect x={chartLeft} y={y} width={w} height={rowH - 10} fill="var(--accent)" rx="3" />
-            <text x="0" y={labelY} fontFamily="IBM Plex Mono, monospace" fontSize="11" fill="#6b6055">{g.label}</text>
-            <text x={chartLeft + w + 10} y={labelY} fontFamily="IBM Plex Mono, monospace" fontSize="12" fontWeight="700" fill="#2a2420">
-              {g.mean.toFixed(1)} gens
+          <g key={g.generator}>
+            <rect x={chartLeft} y={y} width={x(g.mean_generations) - chartLeft} height={barH} fill="var(--accent)" rx="3" />
+            <line x1={x(g.ci_low)} y1={y + barH / 2} x2={x(g.ci_high)} y2={y + barH / 2} stroke="#2a2420" strokeWidth="1.5" />
+            <line x1={x(g.ci_low)} y1={y + barH / 2 - 4} x2={x(g.ci_low)} y2={y + barH / 2 + 4} stroke="#2a2420" strokeWidth="1.5" />
+            <line x1={x(g.ci_high)} y1={y + barH / 2 - 4} x2={x(g.ci_high)} y2={y + barH / 2 + 4} stroke="#2a2420" strokeWidth="1.5" />
+            <text x="0" y={labelY} fontFamily="IBM Plex Mono, monospace" fontSize="11" fill="#6b6055">{GENERATOR_LABELS[g.generator] || g.generator}</text>
+            <text x={x(g.ci_high) + 8} y={labelY} fontFamily="IBM Plex Mono, monospace" fontSize="12" fontWeight="700" fill="#2a2420">
+              {g.mean_generations.toFixed(1)}
             </text>
           </g>
         );
@@ -725,28 +730,35 @@ export default function Questions() {
           <p style={{ fontSize: '0.88rem', color: 'var(--ink-soft)', margin: '0.6rem 0 0' }}>
             <strong style={{ color: 'var(--ink)' }}>What this says:</strong> lineages reliably wander through a few
             structured or noisy handoffs, then lock into a small repeating cycle in rule space itself &mdash; a found
-            stable platform, not a runaway tower of ever-new rules. Confirmed across repeated runs with this
-            generator; whether a richer generator ever fails to lock in is still untested.
+            stable platform, not a runaway tower of ever-new rules. At scale (600 lineages, next question) 95&ndash;100%
+            of runs lock in within the 40-generation budget; the interesting residue is the handful of
+            population-count lineages that ran the whole budget without ever cycling &mdash; whether they lock in
+            eventually or wander forever is budget-bound and genuinely unknown.
           </p>
         </QuestionCard>
 
         <QuestionCard
           id="generators"
           q="Does how the child rule gets generated change how long that search lasts?"
-          status="suggestive" statusLabel="Suggestive"
+          status="established" statusLabel="Established (direction)"
         >
           <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', margin: '0 0 1rem' }}>
-            Mean generations before locking into a cycle (8 seeds per generator; every run locked in 100% of the time
-            within the 40-generation budget):
+            Mean generations before locking into a cycle &mdash; now {metaevolutionData.generators[0].n_lineages}{' '}
+            lineages per generator ({metaevolutionData.seeds} seeds &times; {metaevolutionData.start_rules.length}{' '}
+            starting rules; whiskers are bootstrap 95% CIs; lock-in rates 95&ndash;100%):
           </p>
           <GeneratorBarChart />
           <p style={{ fontSize: '0.88rem', color: 'var(--ink-soft)', margin: '1rem 0 0' }}>
-            <strong style={{ color: 'var(--ink)' }}>What this says:</strong> yes. The deliberately information-free
-            control (<code className="gc-code">G(&middot;,90)</code>, which is provably all-zero for every state by
-            the affine theorem, so it always emits rule 0) locks in almost immediately; the richest generator tested
-            explores roughly 5&times; longer. Consistent with "more state-information in the generator &rarr; longer
-            search" &mdash; and the degenerate control landing exactly at the floor is a nice sanity check that the
-            mechanism is real.
+            <strong style={{ color: 'var(--ink)' }}>What this says:</strong> yes, robustly &mdash; and one early
+            reading didn't survive the scale-up. The information-free control
+            (<code className="gc-code">G(&middot;,90)</code>, provably all-zero for every state by the affine
+            theorem, so it always emits rule 0) sits at <em>exactly</em> 2.0 generations with zero variance across
+            all 120 lineages &mdash; a floor pinned by a theorem. Every information-carrying generator searches
+            3&ndash;5&times; longer, with cleanly separated CIs, and the whole ordering is stable across all three
+            starting rules. But the earlier suggestion that the &ldquo;richest&rdquo; generator searches longest
+            didn't hold: at scale, humble population count statistically ties the 8-bit derivative sample at the
+            top. Carrying <em>some</em> state information matters enormously; naive bit-count of the generator does
+            not predict search length beyond that. One lattice size and one budget, still.
           </p>
         </QuestionCard>
 

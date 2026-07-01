@@ -310,6 +310,18 @@ control sits exactly where it should, at the floor. Good first empirical
 anchor for "representational capacity" as the thing that's actually being
 selected on.
 
+Scale-up (2026-07-01, 600 lineages: 40 seeds x 3 starting rules per
+generator) kept the direction and killed the gradient story: the
+zero-information control is theorem-pinned at exactly 2.0 generations
+(zero variance), every informative generator searches 3-5x longer with
+separated CIs — but population count ties the 8-bit derivative sample at
+the top, so "more bits in the generator → longer search" is wrong beyond
+the zero/nonzero split. Whatever "representational capacity" is being
+selected on, it is not naive bit-count. Also: ~5% of population-count
+lineages exhausted the 40-generation budget without cycling — the first
+observed candidates for open-ended (non-locking) lineages in this system,
+unresolved because budget-bound.
+
 **Absential field as a Class-IV detector — tested, inconclusive so far.**
 Ran `absential_trajectory` against one canonical example each of class
 I/II/III/IV (rules 0, 4, 30, 110) and compared `compressibility` of the
