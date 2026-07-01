@@ -118,7 +118,15 @@ export default function InstrumentViewer({ items, exploreHref, size = 220 }) {
             {items.map((item, i) => (
               <canvas key={item.label} className="gc-field" ref={canvasRefsRef.current[i]} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', borderRadius: 0, background: 'transparent', mixBlendMode: 'multiply' }}></canvas>
             ))}
-            <canvas ref={overlapRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', borderRadius: 0, background: 'transparent', mixBlendMode: 'multiply', imageRendering: 'pixelated' }}></canvas>
+            {/* normal blend, not multiply: multiplying magenta against an
+                already-dark pixel (e.g. wherever the black E(S) layer is
+                lit) crushes back down toward black, so the highlight would
+                be nearly invisible exactly where two dark layers overlap.
+                Painting opaque on top guarantees it's visible regardless of
+                what's underneath, at the cost of hiding those layers' own
+                colors in the overlap region -- an acceptable trade since
+                the legend already lists which layers are active. */}
+            <canvas ref={overlapRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', borderRadius: 0, background: 'transparent', imageRendering: 'pixelated' }}></canvas>
           </div>
           <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
             {items.map((item) => {

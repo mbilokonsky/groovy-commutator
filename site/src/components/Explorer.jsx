@@ -146,6 +146,7 @@ export default function Explorer() {
       if (!fromField) return null;
       const rule = c.rule;
       if (c.op === 'raw') return fromField;
+      if (c.op === 'e') return fromField.map((row) => engine.applyRule(row, rule));
       if (c.op === 'd') return fromField.map((row) => engine.C(row, engine.applyRule(row, rule)));
       if (c.op === 'g') return fromField.map((row) => engine.G(row, rule));
       if (c.op === 'absential') return fromField.map((row) => engine.absentialField(row));
@@ -172,6 +173,7 @@ export default function Explorer() {
       if (!fromField) return null;
       const { born, survive } = c;
       if (c.op === 'raw') return fromField;
+      if (c.op === 'e') return fromField.map((g) => engine.apply2DRule(g, born, survive));
       if (c.op === 'd') return fromField.map((g) => engine.D2D(g, born, survive));
       if (c.op === 'g') return fromField.map((g) => engine.G2D(g, born, survive));
       if (c.op === 'absential') return fromField.map((g) => engine.absentialField2D(g));
@@ -206,7 +208,7 @@ export default function Explorer() {
     if (c.dim === '2d') return metaFor2D(c);
     if (c.type === 'source') return { title: 'Rule ' + c.rule + ', raw', desc: '1D, ' + c.steps + ' steps from the row below.' };
     if (c.type === 'transform') {
-      const opLabel = { raw: 'Raw (identity)', d: 'D (derivative)', g: 'G (commutator)', absential: 'Absential field', secondorder: 'Second-order' }[c.op];
+      const opLabel = { raw: 'Raw (identity)', e: 'E (evolve)', d: 'D (derivative)', g: 'G (commutator)', absential: 'Absential field', secondorder: 'Second-order' }[c.op];
       const fromRule = cardConfigs[c.from] && cardConfigs[c.from].rule;
       let desc;
       if (c.op === 'raw') desc = 'Passed through unchanged from C' + c.from + '.';
@@ -222,7 +224,7 @@ export default function Explorer() {
   function metaFor2D(c) {
     if (c.type === 'source') return { title: bsLabel(c.born, c.survive) + ', raw', desc: '2D, ' + GRID_N + '×' + GRID_N + ', Moore neighborhood.' };
     if (c.type === 'transform') {
-      const opLabel = { raw: 'Raw (identity)', d: 'D (derivative)', g: 'G (commutator)', absential: 'Absential field', secondorder: 'Second-order' }[c.op];
+      const opLabel = { raw: 'Raw (identity)', e: 'E (evolve)', d: 'D (derivative)', g: 'G (commutator)', absential: 'Absential field', secondorder: 'Second-order' }[c.op];
       let desc;
       if (c.op === 'raw') desc = 'Passed through unchanged from C' + c.from + '.';
       else if (c.op === 'absential') desc = 'Off-but-Moore-adjacent cells of C' + c.from + ', per generation.';
@@ -487,14 +489,15 @@ export default function Explorer() {
     .map((id) => ({ value: String(id), label: 'C' + id }));
 
   const opDefs = [
-    { key: 'raw', label: 'Raw' }, { key: 'd', label: 'D' }, { key: 'g', label: 'G' },
+    { key: 'raw', label: 'Raw' }, { key: 'e', label: 'E' }, { key: 'd', label: 'D' }, { key: 'g', label: 'G' },
     { key: 'absential', label: 'Absential' }, { key: 'secondorder', label: '2nd-order' },
   ];
-  const opNeedsRule = ['d', 'g', 'secondorder'].includes(modalOp);
+  const opNeedsRule = ['e', 'd', 'g', 'secondorder'].includes(modalOp);
   const fromMetaForHelper = modalFrom != null ? cardConfigs[modalFrom] : null;
   const ruleAutoFilled = fromMetaForHelper && fromMetaForHelper.rule != null && fromMetaForHelper.rule === modalRule;
   const opHelperText = {
     raw: 'Passes the input through unchanged — useful for comparing "before" and "after" side by side.',
+    e: 'φ(S) of the input, under the rule below — the plain next state, nothing else. Feed a D card into an E card (or vice versa) to build D(E(S)) or E(D(S)), the two fields the Groovy Commutator actually compares.',
     d: 'S ⊕ φ(S) of the input, under the rule below.' + (ruleAutoFilled ? ' Auto-filled from C' + modalFrom + ' — D of a D with the same rule is exactly the second derivative.' : ' Change it to reinterpret the input under a different rule.'),
     g: 'The Groovy Commutator of the input, under the rule below.',
     absential: 'Off-but-adjacent cells of the input, at each step. No rule needed.',

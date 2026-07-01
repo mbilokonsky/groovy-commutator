@@ -35,16 +35,27 @@ export default function Home() {
             defined here, mostly in terms of XOR.
           </p>
 
+          <p style={pBody}>
+            Normally you'd just say: the next state is <code className="gc-code">&phi;(S)</code>, full stop. Call
+            that step <code className="gc-code">E(S)</code>, for <em>evolve</em> &mdash; and if all you want is the
+            next state, that's the whole story, no calculus required. What follows arrives at that exact
+            same <code className="gc-code">&phi;(S)</code> by a longer road, through a derivative and an integral.
+            That's not a different answer &mdash; <code className="gc-code">E(S)</code> is provably identical to
+            plain <code className="gc-code">&phi;(S)</code>, an isomorphism, not a new evolution rule. The point of
+            the detour is what it exposes along the way: two internal moving parts, <code className="gc-code">D</code>{' '}
+            and <code className="gc-code">I</code>, that turn out to be useful on their own.
+          </p>
+
           <div style={formulaBlock}>
-            <div style={formulaLine}><span>R</span><span style={formulaNote}>the rule, 0&ndash;255</span></div>
+            <div style={formulaLine}><span>R &isin; {'{0, 1, …, 255}'}</span><span style={formulaNote}>the rule</span></div>
             <div style={formulaLine}><span>&phi;(S)<sub>i</sub> = R<sub>4&middot;S(i&minus;1) + 2&middot;S(i) + S(i+1)</sub></span><span style={formulaNote}>one cell's next value</span></div>
-            <div style={formulaLine}><span>D(S) = S &oplus; &phi;(S)</span><span style={formulaNote}>what changed</span></div>
-            <div style={formulaLine}><span>I(a, b) = a &oplus; b</span><span style={formulaNote}>fold a difference back in</span></div>
-            <div style={formulaLine}><span>E(S) = I(S, D(S)) = &phi;(S)</span><span style={formulaNote}>derived, not assumed</span></div>
+            <div style={formulaLine}><span>D(S) = S &oplus; &phi;(S)</span><span style={formulaNote}>differentiate &mdash; what changed</span></div>
+            <div style={formulaLine}><span>I(a, b) = a &oplus; b</span><span style={formulaNote}>integrate &mdash; fold a difference back in</span></div>
+            <div style={formulaLine}><span>E(S) = I(S, D(S)) = &phi;(S)</span><span style={formulaNote}>evolve &mdash; derived, not assumed</span></div>
           </div>
           <p style={{ ...pBody, fontSize: '0.9rem' }}>
-            <code style={{ fontFamily: "'IBM Plex Mono',monospace", background: 'var(--bg-alt)', padding: '0.1em 0.4em', borderRadius: 4 }}>&phi;</code>{' '}
-            just reads <code style={{ fontFamily: "'IBM Plex Mono',monospace", background: 'var(--bg-alt)', padding: '0.1em 0.4em', borderRadius: 4 }}>R</code>{' '}
+            <code className="gc-code">&phi;</code>{' '}
+            just reads <code className="gc-code">R</code>{' '}
             as an 8-entry lookup table, indexed by the 3-cell neighborhood &mdash; the same table the rule-diagram on
             the Concepts page lets you edit by hand.
           </p>
