@@ -146,12 +146,23 @@ section 6 for the full writeup and citations.
   those PNGs rather than letting the site recompute full sweeps itself;
   the site's live-computed charts (Findings page) work from small
   hardcoded/checked-in datasets, not from re-running `scripts/`.
+  **`vite.config.js`'s `base: '/groovy-commutator/'` is load-bearing** —
+  this deploys as a GitHub Pages *project* site, not a user/root site, so
+  every Vite-emitted asset URL needs that prefix or it 404s against the
+  domain root (this shipped broken once already: HTML loaded, 200, but
+  the JS bundle 404'd and the page rendered blank). Internal nav links and
+  image `src` in the components are deliberately relative (no leading
+  `/`) instead of using the base — don't "fix" them back to absolute.
 - `public/` (repo root) — **generated**, gitignored. `npm run build
   --prefix site` produces it; `.github/workflows/pages.yml` does this in
   CI before every deploy. Never edit its contents directly — changes
-  belong in `site/`. `.claude/launch.json` has both a `site-dev` (Vite,
-  hot reload) and `site-preview` (serves the built `public/` as-is)
-  config for `Claude_Preview`/local preview.
+  belong in `site/`. `.claude/launch.json`'s `site-dev` (Vite, hot reload)
+  is the normal way to preview. Its `site-preview` config serves the
+  built `public/` directly at the server root, **not** under
+  `/groovy-commutator/`, so it can't catch base-path bugs like the one
+  above — it's for checking page content/behavior only. To actually
+  verify the base path, serve `public/` from inside a `groovy-commutator/`
+  subdirectory of some root and load it from there.
 - `NOTES.md` — the "why": citations, QM correspondence, the speculative
   interpretive thread. `CLAUDE.md` (this file) — the "what to build
   next" and established results to build on without re-deriving.

@@ -222,7 +222,7 @@ export default function Findings() {
           <ImageRatioHistogram />
           <figure style={{ margin: '0 0 0.6rem' }}>
             <img
-              src="/assets/img/regime_image_ratio_boxplot.png"
+              src="assets/img/regime_image_ratio_boxplot.png"
               alt="Box plot of minimum image_ratio between the two rules in a pair, grouped by regime, showing heavily overlapping distributions across all five regimes."
               style={{ width: '100%', borderRadius: 8, border: '1px solid var(--rule)', background: '#fff' }}
             />
@@ -244,7 +244,7 @@ export default function Findings() {
           </div>
           <figure style={{ margin: '0 0 0.6rem' }}>
             <img
-              src="/assets/img/regime_heatmap.png"
+              src="assets/img/regime_heatmap.png"
               alt="A 256 by 256 grid heatmap where each cell is colored by the regime of that rule pair, showing dense vertical and horizontal banding."
               style={{ width: '100%', borderRadius: 8, border: '1px solid var(--rule)', background: '#fff' }}
             />

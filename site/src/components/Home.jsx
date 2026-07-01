@@ -34,10 +34,10 @@ export default function Home() {
             acting on itself.
           </p>
           <div className="gc-cta" style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap', margin: '0 0 1.8em' }}>
-            <a href="/concepts.html" className="gc-mono" style={{ display: 'inline-block', fontWeight: 700, fontSize: '0.92rem', textDecoration: 'none', padding: '0.7rem 1.3rem', borderRadius: 7, border: '1px solid var(--accent)', background: 'var(--accent)', color: '#fff' }}>
+            <a href="concepts.html" className="gc-mono" style={{ display: 'inline-block', fontWeight: 700, fontSize: '0.92rem', textDecoration: 'none', padding: '0.7rem 1.3rem', borderRadius: 7, border: '1px solid var(--accent)', background: 'var(--accent)', color: '#fff' }}>
               Start with the concepts &rarr;
             </a>
-            <a href="/findings.html" className="gc-mono" style={{ display: 'inline-block', fontWeight: 700, fontSize: '0.92rem', textDecoration: 'none', padding: '0.7rem 1.3rem', borderRadius: 7, border: '1px solid var(--accent)', background: 'transparent', color: 'var(--accent)' }}>
+            <a href="findings.html" className="gc-mono" style={{ display: 'inline-block', fontWeight: 700, fontSize: '0.92rem', textDecoration: 'none', padding: '0.7rem 1.3rem', borderRadius: 7, border: '1px solid var(--accent)', background: 'transparent', color: 'var(--accent)' }}>
               Jump to findings
             </a>
           </div>
@@ -81,9 +81,9 @@ export default function Home() {
           <p style={{ fontSize: '1rem', color: 'var(--ink-soft)', margin: 0 }}>
             Full breakdown, the regime that turned out to dominate, and where the newer instruments (absential cells,
             reversible memory, rules birthing rules) currently stand are all on the{' '}
-            <a href="/findings.html" style={{ color: 'var(--accent)' }}>findings page</a>. If the vocabulary above
+            <a href="findings.html" style={{ color: 'var(--accent)' }}>findings page</a>. If the vocabulary above
             (<code className="gc-code">D</code>, <code className="gc-code">E</code>, <code className="gc-code">G</code>,
-            "regime") is new, the <a href="/concepts.html" style={{ color: 'var(--accent)' }}>concepts page</a> builds
+            "regime") is new, the <a href="concepts.html" style={{ color: 'var(--accent)' }}>concepts page</a> builds
             it from scratch, one small piece at a time.
           </p>
         </section>

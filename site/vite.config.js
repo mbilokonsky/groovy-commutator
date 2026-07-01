@@ -7,6 +7,13 @@ import { resolve } from 'path';
 // that directory is gitignored and rebuilt by CI (see
 // .github/workflows/pages.yml) rather than committed.
 export default defineConfig({
+  // Deployed as a GitHub Pages PROJECT site (mbilokonsky.github.io/groovy-commutator/),
+  // not a user/root site -- every asset URL Vite emits needs this prefix or
+  // it resolves against the domain root instead and 404s (blank page, since
+  // the JS bundle never loads). Internal nav links/image src in the
+  // components are deliberately relative instead, so they're unaffected by
+  // this and would work under any base path.
+  base: '/groovy-commutator/',
   plugins: [react()],
   build: {
     outDir: resolve(__dirname, '../public'),

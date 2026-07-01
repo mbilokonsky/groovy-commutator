@@ -370,7 +370,7 @@ export default function Concepts() {
               <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', maxWidth: '42ch', margin: 0 }}>
                 Open question this raises: does this field's own compressibility work as a faster Class-IV detector
                 than looking at G or the raw state? First test didn't confirm it &mdash; see the{' '}
-                <a href="/findings.html#absential" style={{ color: 'var(--accent)' }}>findings page</a>.
+                <a href="findings.html#absential" style={{ color: 'var(--accent)' }}>findings page</a>.
               </p>
             </div>
           </section>
@@ -443,7 +443,7 @@ export default function Concepts() {
             rule</em> each generation, classify the parent&rarr;child handoff with the same five-regime diagnostic
             above, then hand control to the child. Lineages reliably wander for a few generations, then lock into a
             small repeating cycle in rule space itself &mdash; see the{' '}
-            <a href="/findings.html#meta-evolution" style={{ color: 'var(--accent)' }}>findings page</a> for a live
+            <a href="findings.html#meta-evolution" style={{ color: 'var(--accent)' }}>findings page</a> for a live
             version of this you can re-run yourself.
           </p>
         </section>

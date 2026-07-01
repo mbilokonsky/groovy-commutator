@@ -43,10 +43,10 @@ function centerSeedIC(n) {
 }
 
 const NAV_PAGES = [
-  { href: '/index.html', label: 'Home' },
-  { href: '/concepts.html', label: 'Concepts' },
-  { href: '/findings.html', label: 'Findings' },
-  { href: '/explorer.html', label: 'Explorer', active: true },
+  { href: 'index.html', label: 'Home' },
+  { href: 'concepts.html', label: 'Concepts' },
+  { href: 'findings.html', label: 'Findings' },
+  { href: 'explorer.html', label: 'Explorer', active: true },
 ];
 
 export default function Explorer() {
@@ -514,7 +514,7 @@ export default function Explorer() {
     <div className="ex-root">
       <header style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(27,23,20,0.92)', backdropFilter: 'blur(6px)', borderBottom: '1px solid var(--rule)' }}>
         <nav style={{ maxWidth: 1120, margin: '0 auto', padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.6rem' }}>
-          <a href="/index.html" style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--ink)', textDecoration: 'none', letterSpacing: '-0.01em', fontFamily: "'Lora',serif" }}>Groovy Commutator</a>
+          <a href="index.html" style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--ink)', textDecoration: 'none', letterSpacing: '-0.01em', fontFamily: "'Lora',serif" }}>Groovy Commutator</a>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.3rem' }}>
             {NAV_PAGES.map((p) => (
               <a key={p.href} href={p.href} style={{ textDecoration: 'none', color: p.active ? 'var(--ink)' : 'var(--ink-soft)', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '.04em', paddingBottom: 3, borderBottom: '2px solid ' + (p.active ? 'var(--accent)' : 'transparent') }}>{p.label}</a>
@@ -535,10 +535,10 @@ export default function Explorer() {
           Build and run the instruments yourself
         </h1>
         <p style={{ fontSize: '1rem', color: 'var(--ink-soft)', margin: '0 0 1.6em', maxWidth: '70ch' }}>
-          Every instrument here is <a href="/concepts.html#state" style={{ color: 'var(--accent)' }}>State &rarr; State</a>:
+          Every instrument here is <a href="concepts.html#state" style={{ color: 'var(--accent)' }}>State &rarr; State</a>:
           a card takes one or more inputs, applies one operation, and produces a new field of the same shape &mdash;
           which can itself feed another card, at any depth. New here?{' '}
-          <a href="/concepts.html" style={{ color: 'var(--accent)' }}>Concepts</a> builds the vocabulary one piece at a time first.
+          <a href="concepts.html" style={{ color: 'var(--accent)' }}>Concepts</a> builds the vocabulary one piece at a time first.
         </p>
 
         <div style={{ marginBottom: 10 }}>
