@@ -191,7 +191,21 @@ first, they carry the math. Full interpretive writeup and citations are in
      stable polycultures at every size, sublinear in n. Remaining
      caveats: 1D only; correlation, not proven mechanism.
 
-9. **Absential Class-IV detector: established negative (fair 2D test);
+9. **Pair-lineage meta-evolution: bigger rule space does not buy
+   open-endedness** (2026-07-01, `scripts/experiment_metaevolution_pairs.py`
+   → `results/metaevolution_pairs.csv` +
+   `site/src/data/metaevolution_pairs.json`). Lineage protocol lifted to
+   coupled two-layer pre-hoc systems (4 component rules = 2^32 configs;
+   generator = 8-bit samples of A, B, A^B, absential(A); handoff
+   classified on old-vs-new system disagreement of layer A). 40 seeds,
+   60-generation budget: 98% lock-in, onto fixed points and 2-cycles
+   only, median 14 generations (vs ~10 in single-rule space) — a 16
+   million× larger space bought ~2× longer search and no open-endedness.
+   Points "why do lineages settle" away from rule-space size toward the
+   state→rule feedback structure. Suggestive: one generator
+   construction, one topology.
+
+10. **Absential Class-IV detector: established negative (fair 2D test);
    affine theorem is dimension-free** (2026-07-01, `src/groovy/ca2d.py`
    — Python 2D engine at parity with the JS one,
    `scripts/experiment_absential_2d.py` → `results/absential_2d.csv` +
@@ -221,7 +235,7 @@ section 6 for the full writeup and citations.
   — cells that are off but adjacent to an on cell (closed-neighborhood
   dilation minus the live set), distinct from "void" cells with no live
   neighbor. The candidate fast Class-IV-detector use is now settled
-  negative — see established result 9 (fair 2D test with real gliders
+  negative — see established result 10 (fair 2D test with real gliders
   and still lifes; absential compressibility always tracks raw). The
   field itself remains a fine instrument (it IS elementary rule 50, per
   the prehoc collapse theorem).

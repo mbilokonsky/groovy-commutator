@@ -322,6 +322,17 @@ lineages exhausted the 40-generation budget without cycling — the first
 observed candidates for open-ended (non-locking) lineages in this system,
 unresolved because budget-bound.
 
+The pair-lineage lift (2026-07-01, experiment_metaevolution_pairs.py):
+running the same lineage protocol over coupled two-layer pre-hoc systems
+(4 component rules, 2^32 configurations) still locks in 98% of the time,
+onto fixed points and 2-cycles only, after a ~2x longer search (median 14
+generations). Enlarging the searchable space sixteen-million-fold did not
+produce open-endedness — which points the open-ended-evolution question
+here away from rule-space size and toward the structure of the state→rule
+feedback (the generator's information bottleneck, and perhaps the
+absorbing quality of quiet configurations) as the thing that closes
+lineages down.
+
 **Absential field as a Class-IV detector — tested, inconclusive so far.**
 Ran `absential_trajectory` against one canonical example each of class
 I/II/III/IV (rules 0, 4, 30, 110) and compared `compressibility` of the
@@ -346,7 +357,7 @@ fields under Life itself. Absential compressibility is a monotone
 rescaling of raw compressibility in every condition — slightly more
 compressible than raw in 1D, slightly less in 2D (the Moore halo is
 denser), never cross-cutting, never adding discrimination. Established
-negative; see CLAUDE.md result 9. Two byproducts worth keeping: plain
+negative; see CLAUDE.md result 10. Two byproducts worth keeping: plain
 settled-window compressibility bands the informal classes by itself
 (frozen 0.01–0.02 / Class IV 0.32–0.36 / additive 0.61 / chaos 0.79 —
 "interesting" is the middle band again, rhyming with structured

@@ -8,6 +8,7 @@ import nonuniformData from '../data/nonuniform.json';
 import absential2dData from '../data/absential_2d.json';
 import drainScalingData from '../data/drain_scaling.json';
 import metaevolutionData from '../data/metaevolution.json';
+import metaevoPairsData from '../data/metaevolution_pairs.json';
 
 const REGIME_COUNTS = [
   { key: 'structured', count: 14751 },
@@ -763,6 +764,32 @@ export default function Questions() {
             didn't hold: at scale, humble population count statistically ties the 8-bit derivative sample at the
             top. Carrying <em>some</em> state information matters enormously; naive bit-count of the generator does
             not predict search length beyond that. One lattice size and one budget, still.
+          </p>
+        </QuestionCard>
+
+        <QuestionCard
+          id="pair-lineages"
+          q="Give the lineage a vastly bigger rule space to search — does it stop settling down?"
+          status="suggestive" statusLabel="Suggestive"
+        >
+          <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', margin: '0 0 1rem' }}>
+            One suspicion about the lock-in result above: maybe lineages settle only because elementary rule space
+            is tiny (256 points). The pre-hoc decomposition (further down) opens a much larger, structured space
+            &mdash; a coupled two-layer system is four component rules, 2<sup>32</sup> possible configurations.
+            Same lineage protocol, lifted: the generator derives four child rules from the two current layers, the
+            handoff is classified by the same five-regime diagnostic on the old-system-vs-new-system disagreement,
+            and lock-in means the 4-byte table sequence starts repeating.
+          </p>
+          <p style={{ fontSize: '0.88rem', color: 'var(--ink-soft)', margin: 0 }}>
+            <strong style={{ color: 'var(--ink)' }}>What happened:</strong> no. Across {metaevoPairsData.seeds}{' '}
+            lineages, {Math.round(metaevoPairsData.lockin_rate * 100)}% still locked in within the{' '}
+            {metaevoPairsData.max_generations}-generation budget &mdash; onto tiny platforms (only fixed points and
+            2-cycles in table space) &mdash; after a roughly 2&times; longer search than the single-rule case
+            (median {metaevoPairsData.median_generations_locked} generations vs. ~10 above). Multiplying the
+            searchable space by sixteen million bought a doubling of exploration and no open-endedness. Suggestive,
+            not established (one generator construction, one coupling topology) &mdash; but it points the
+            &ldquo;why do lineages settle?&rdquo; question away from rule-space size and toward the structure of
+            the state&rarr;rule feedback itself.
           </p>
         </QuestionCard>
 
