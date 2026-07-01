@@ -327,6 +327,21 @@ really exist as objects at the elementary-CA scale the same way they do
 in Conway's Life — the closer test would be a CA with known stable
 localized structures), not just four representative rules.
 
+**That closer test has now been run and the hypothesis is dead**
+(2026-07-01, `scripts/experiment_absential_2d.py`, `src/groovy/ca2d.py`):
+seven Life-like 2D rules from soup plus pure still-life and pure glider
+fields under Life itself. Absential compressibility is a monotone
+rescaling of raw compressibility in every condition — slightly more
+compressible than raw in 1D, slightly less in 2D (the Moore halo is
+denser), never cross-cutting, never adding discrimination. Established
+negative; see CLAUDE.md result 9. Two byproducts worth keeping: plain
+settled-window compressibility bands the informal classes by itself
+(frozen 0.01–0.02 / Class IV 0.32–0.36 / additive 0.61 / chaos 0.79 —
+"interesting" is the middle band again, rhyming with structured
+divergence), and the affine theorem crossed dimensions intact
+(B1357/S1357 is neighbor parity, the 2D rule 90; its G₂ vanished on
+every random grid tested while Life's never did).
+
 ## 7. Pre-hoc composition: the fourth input, and what it took to make it real
 
 The open question on the site's questions page ("what if a rule's
