@@ -68,12 +68,76 @@ first, they carry the math. Full interpretive writeup and citations are in
    image_ratio range overlaps heavily with crystalline and structured,
    reconfirming at full scale (not just the rule-4 counterexample) that
    image_ratio alone does not cleanly separate the regimes.
-   `classify.classify_regime`'s thresholds (`CRYSTALLINE_COMPRESSIBILITY`,
-   `NOISY_COMPRESSIBILITY`) are still provisional — read off the
-   qualitative pilot description, not fit to this distribution. Sanity-
-   checking/refitting those cut points against the real compressibility
-   histogram is good follow-up work before trusting the regime counts
-   above too precisely.
+   `classify.classify_regime`'s thresholds have since been checked
+   against the real distribution (result 6) and the drain count above has
+   a known inflation (result 5).
+
+5. **Drain mechanism, answered — with a label correction** (2026-07-01,
+   `scripts/experiment_drain_predictor.py` → `results/drain_predictor.parquet`
+   + `site/src/data/drain_predictor.json`). Two findings:
+   - **The sweep's drain label conflates two populations.** Of 4,009
+     labeled drains, 2,754 never converge (median final disagreement
+     0.418 — the `peak - final > 0.15` shape rule fires on early
+     transients). True convergence (final = 0 after peak > 0) covers
+     2,150 pairs: 1,255 labeled drain + 895 "quiet drains" filed under
+     crystalline because their transient peak stayed below 0.15. Honest
+     drain census ≈ 2,150 pairs (6.6%), not 4,009 (12.3%).
+   - **What predicts true convergence: two properties of the PAIR,
+     computed exhaustively at n=12.** (a) The eventual image of the
+     composed round map — push all 2^12 states through (phi_b ∘ phi_a)
+     repeatedly, dedup between rounds, until the image stops shrinking —
+     collapses to a tiny set, AND (b) the two orderings' eventual images
+     are the *same* set (Jaccard overlap). Converged pairs: median image
+     3 states, median overlap 1.0. Crystalline is the near-miss: similar
+     collapse (median 92 states) into *disjoint* attractors (overlap
+     0.046). AUC for converged-vs-rest 0.908 by image size (old
+     min-image_ratio baseline: 0.692); the crisp rule "shared attractor
+     ≤ 4 states" gets precision 0.76 / recall 0.68 — n=12 exhaustive
+     structure predicting n=100 sampled behavior. The rule-4
+     counterexample fully resolves: 4/30, 4/126, 4/54 collapse to shared
+     images of 3, 1, 1 states; 4/18 keeps 67 states at overlap 0.47 and
+     doesn't drain. Residual predictor error is real (attractor structure
+     depends on ring size), flagged as such on the site.
+
+6. **Classifier thresholds validated against the full distribution**
+   (2026-07-01, `scripts/experiment_threshold_check.py` →
+   `site/src/data/threshold_check.json`). The compressibility histogram
+   of the 27,467 shape-undecided pairs is genuinely bimodal at the low
+   end, and `CRYSTALLINE_COMPRESSIBILITY = 0.10` sits in the empirical
+   valley (the 0.10–0.12 bin is the histogram minimum). The noisy cut is
+   soft — no valley, a smooth ramp into the incompressible spike at 1.0 —
+   but the headline "structured is the modal regime" is robust: it holds
+   for any noisy cut in [0.60, 0.98] and any crystalline cut up to ~0.20.
+   Verdict: keep 0.10/0.85, no refit needed; the structured/noisy split
+   specifically should be described as a judgment call, not a natural
+   boundary.
+
+7. **Pre-hoc composition (4-input rules): implemented; collapse theorem;
+   coupling produces emergence** (2026-07-01, `src/groovy/prehoc.py`,
+   JS mirror in `site/src/lib/groovy-engine.js`,
+   `scripts/experiment_prehoc_coupling.py` → `results/prehoc_coupling.csv`
+   + `site/src/data/prehoc_coupling.json`).
+   - A 16-entry 4-input table (indexed `8x + 4l + 2c + r`) is exactly an
+     ordered pair of elementary rules — x selects per cell which applies.
+     Only 512/65,536 tables (0.8%) are post-hoc separable
+     (f = g(l,c,r) XOR h(x)).
+   - **Collapse theorem**: if x is any same-time radius-1 function of the
+     same state (x = mu(S), mu elementary), the 4-input rule collapses to
+     the elementary rule `table[8*mu[idx] + idx]`. The absential field IS
+     elementary rule 50; D(·,psi) IS elementary rule psi ^ 204 — so
+     feeding a rule its own derivative or absential field pre-hoc buys
+     nothing new. Escape requires input from another *time* (memory, cf.
+     `secondorder.py`) or another *trajectory*. Verified computationally
+     in Python and live in-browser on the questions page.
+   - Mutually coupled layers (each layer's x = the other layer's current
+     state): 1,500 random pre-hoc samples span the full compressibility
+     range (median 0.70) while 1,500 post-hoc XOR controls pile up at
+     noise (median 1.01). Three "emergent" examples found where all four
+     component rules are boring alone (solo compressibility < 0.10) but
+     the coupled system is structured — robust across 20 seeds each:
+     (77,55|44,23), (237,93|71,221), (164,235|223,160). Suggestive, not
+     established: one sampling run, one (mutual, symmetric) topology, one
+     lattice size.
 
 ## New instruments (added 2026-06-30, from a separate chat-interface exploration)
 
@@ -148,7 +212,10 @@ section 6 for the full writeup and citations.
   script as the source of those PNGs rather than letting the site
   recompute full sweeps itself; the site's live-computed charts
   (Questions page) work from small hardcoded/checked-in datasets, not
-  from re-running `scripts/`.
+  from re-running `scripts/`. The Questions page's data-backed charts
+  read `site/src/data/*.json`, which are *generated* by the matching
+  `scripts/experiment_*.py` — regenerate via the script rather than
+  hand-editing the JSON.
   **`vite.config.js`'s `base: '/groovy-commutator/'` is load-bearing** —
   this deploys as a GitHub Pages *project* site, not a user/root site, so
   every Vite-emitted asset URL needs that prefix or it 404s against the

@@ -136,8 +136,27 @@ fully predict drain. Rule 4 (image_ratio 0.051) drains to zero against rules
 18 and rule 126 sharing the same image_ratio (0.135). The actual condition
 is a finer structural compatibility between the specific pair, more in the
 spirit of Moore-Boykett's permutivity conditions than a scalar lossiness
-score. Unresolved — a real candidate for further work, not just
-under-sampling.
+score.
+
+**Resolved (2026-07-01)** — see CLAUDE.md result 5 for the numbers. The
+condition is pairwise and two-part: the *composed* round map's eventual
+image (exhaustive at n=12, iterate until the image stops shrinking) must
+collapse to a tiny set, and the two orderings must collapse into the *same*
+set. Crystalline turns out to be the structural near-miss — a similar
+collapse into *disjoint* (constant-offset) attractors — which is a
+satisfying echo of the affine picture in section 2: the crystalline
+disagreement constant is exactly the fixed offset between the two
+attractor copies. The experiment also forced a taxonomy correction: the
+sweep's shape-based drain label (peak − final > 0.15) both over-counts
+(2,754 "drains" that never converge, median final disagreement 0.418 —
+transient decay, not convergence) and under-counts (895 "quiet drains"
+filed as crystalline because the transient stayed under the threshold).
+"Drain" as a mechanism should be read as: convergence of both orderings
+onto a literally shared attractor — entropy death into a shared grave —
+and it is visible from a 4,096-state toy computation. The Hindley-Rosen /
+confluence analogy in section 3 lands more precisely now: drain is the
+confluent case, crystalline the case where the critical pair never
+resolves but stays at fixed distance.
 
 ## 5. Open interpretive thread: Unus Mundus as rule composition
 
@@ -307,3 +326,65 @@ glider/still-life cases the hypothesis was framed around (gliders don't
 really exist as objects at the elementary-CA scale the same way they do
 in Conway's Life — the closer test would be a CA with known stable
 localized structures), not just four representative rules.
+
+## 7. Pre-hoc composition: the fourth input, and what it took to make it real
+
+The open question on the site's questions page ("what if a rule's
+neighborhood could include cells from a different layer?") is now
+implemented (`src/groovy/prehoc.py`, 2026-07-01). Three things came out of
+making it concrete, in increasing order of interest.
+
+**The 4-input rule space is ordered-rule-pair space.** Index the 16-entry
+table by `8x + 4l + 2c + r` and the two 8-entry halves are just two
+elementary rules — the fourth input is a per-cell, per-step *selector*
+between them. This makes the space legible instead of astronomical: 65,536
+tables = 256×256 ordered pairs. Only 512 tables (0.8%) are separable into
+post-hoc form `g(l,c,r) XOR h(x)` (halves equal or complementary). So
+"coupling as a degenerate case of pre-hoc composition" is exactly right,
+and it is a *thin* degenerate case.
+
+**The collapse theorem.** The two inputs the original question proposed —
+feed in D(S) or the absential field A(S) as the fourth neighbor — turn out
+to be self-defeating, provably: any fourth input that is a same-time,
+radius-1 function of the same state (x = mu(S) with mu elementary) makes
+the 4-input rule collapse to a plain elementary rule,
+`eff[idx] = table[8*mu[idx] + idx]`. Both proposed inputs are of that form:
+A(S) is elementary rule 50 ((l|r) & ~c), and D(·,psi) is elementary rule
+psi ^ 204 (204 outputs the center bit, so the XOR flips exactly the c=1
+entries of psi's table). The generalization of the escape routes is clean
+and connects to existing lineages: the fourth input must come from another
+*time* — which is precisely CA-with-memory (Alonso-Sanz's program, and the
+Margolus-Fredkin second-order construction already in `secondorder.py`) —
+or another *trajectory*, i.e. a second layer with its own dynamics, which
+is where the experiment went.
+
+**Coupled layers, and emergence from boring parts.** Two layers, each
+stepped by a 4-input rule whose x is the other layer's current state
+(`prehoc.coupled_trajectory`). Sampling 1,500 random pre-hoc couplings vs
+1,500 post-hoc XOR controls (`scripts/experiment_prehoc_coupling.py`):
+the control population is almost entirely noise (median compressibility
+1.01 — XOR-ing an uncorrelated layer into a trajectory is a randomizer),
+while pre-hoc couplings span the whole range from frozen to noise (median
+0.70). The screen for emergence — all four component rules boring alone
+(solo compressibility < 0.10, i.e. fixed or small-cycle) while the coupled
+trajectory lands in the structured band — surfaced 3/1,500 samples, each
+robust across 20 rerolled initial conditions: (77,55|44,23),
+(237,93|71,221), (164,235|223,160). This is the project's clearest
+instance of a *relationship* carrying information its relata don't — the
+structured-divergence story from section 4, but generative rather than
+diagnostic: there the structure showed up in the disagreement field
+between two unfoldings; here it shows up in the trajectories themselves,
+manufactured by mutual sensitivity between two otherwise-inert dynamics.
+The unus-mundus thread in section 5 gains a sharper formal image from
+this: "one substrate, two orderings" becomes "two substrates, each
+constituted partly by the other's presence" — closer to Deacon's
+constitutive absence than the divergence construction ever was, since each
+layer's next state is literally a function of what the other layer is.
+
+Honest limits: one sampling run, one coupling topology (mutual, symmetric,
+same-time), one lattice size, and "boring/structured" read off the same
+zlib compressibility diagnostic used everywhere else — a richer emergence
+criterion (transfer entropy between layers, say) is untested. The
+selector decomposition also suggests an unexplored bridge back to
+meta-evolution: a lineage's generator could emit *pairs* of rules plus a
+coupling, instead of single rules.

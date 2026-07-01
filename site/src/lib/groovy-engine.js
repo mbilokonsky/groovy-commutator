@@ -502,6 +502,81 @@ export function renderGrid2DToCanvas(canvas, grid, colorOn, colorOff) {
   }
 }
 
+// ---- prehoc.py ----
+// 4-input rules: a 16-entry LUT indexed by 8x + 4l + 2c + r, packed into one
+// integer 0..65535. The two 8-entry halves ARE elementary rules -- every
+// 4-input rule is an ordered pair (rule where x=0, rule where x=1), with the
+// fourth input selecting per cell which applies. See src/groovy/prehoc.py
+// for the collapse theorem this mirrors.
+
+export const ABSENTIAL_RULE = 50;   // A(S) = (l|r) & ~c as an elementary rule
+export const CENTER_RULE = 204;     // output = center bit; D(.,psi) == rule (psi ^ 204)
+
+export function rule4FromPair(ruleX0, ruleX1) {
+  return (ruleX1 << 8) | ruleX0;
+}
+
+export function rule4Pair(tableNum) {
+  return [tableNum & 0xff, (tableNum >> 8) & 0xff];
+}
+
+// Post-hoc decomposable (f = g(l,c,r) XOR h(x)) iff the two halves are equal
+// or bitwise complements: 512 of 65,536 tables.
+export function isSeparable4(tableNum) {
+  const [x0, x1] = rule4Pair(tableNum);
+  return x1 === x0 || x1 === (x0 ^ 0xff);
+}
+
+export function rule4LUT(tableNum) {
+  const lut = new Uint8Array(16);
+  for (let i = 0; i < 16; i++) lut[i] = (tableNum >> i) & 1;
+  return lut;
+}
+
+// One synchronous step of a 4-input rule, fourth input supplied as an
+// explicit per-cell field x.
+export function applyRule4(state, x, tableNum) {
+  const n = state.length;
+  const lut = rule4LUT(tableNum);
+  const out = new Uint8Array(n);
+  for (let i = 0; i < n; i++) {
+    const l = state[(i - 1 + n) % n];
+    const c = state[i];
+    const r = state[(i + 1) % n];
+    out[i] = lut[8 * x[i] + 4 * l + 2 * c + r];
+  }
+  return out;
+}
+
+// Collapse theorem: if x = mu(S) for an elementary rule mu (same time, same
+// radius), the 4-input rule IS an elementary rule -- this computes which one.
+export function collapseToElementary(tableNum, muRule) {
+  const lut4 = rule4LUT(tableNum);
+  const mu = ruleLUT(muRule);
+  let eff = 0;
+  for (let idx = 0; idx < 8; idx++) eff |= lut4[8 * mu[idx] + idx] << idx;
+  return eff;
+}
+
+// Two layers, mutually pre-hoc coupled: each step (synchronous), layer A
+// steps by tableA with x = B's current state, and vice versa. This is the
+// construction that escapes the collapse theorem -- the fourth input comes
+// from another trajectory, not the layer's own neighborhood.
+export function coupledTrajectory(stateA0, stateB0, tableA, tableB, steps) {
+  let a = stateA0.slice();
+  let b = stateB0.slice();
+  const fieldA = [], fieldB = [], diff = [];
+  for (let t = 0; t < steps; t++) {
+    fieldA.push(a);
+    fieldB.push(b);
+    diff.push(C(a, b));
+    const nextA = applyRule4(a, b, tableA);
+    const nextB = applyRule4(b, a, tableB);
+    a = nextA; b = nextB;
+  }
+  return { a: fieldA, b: fieldB, diff };
+}
+
 // ---- metaevolution.py ----
 
 export function populationCountGenerator(state) {
