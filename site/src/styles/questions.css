@@ -31,6 +31,7 @@
 .gc-badge.established { border-color: oklch(0.45 0.1 165); color: oklch(0.4 0.1 165); background: oklch(0.94 0.03 165); }
 .gc-badge.suggestive { border-color: oklch(0.5 0.12 80); color: oklch(0.45 0.12 80); background: oklch(0.95 0.04 80); }
 .gc-badge.exploratory { border-color: oklch(0.48 0.1 320); color: oklch(0.45 0.1 320); background: oklch(0.95 0.03 320); }
+.gc-badge.open { border-color: var(--ink-soft); color: var(--ink-soft); background: var(--bg-alt); border-style: dashed; }
 
 .gc-abs-table {
   display: grid;

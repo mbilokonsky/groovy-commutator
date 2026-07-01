@@ -135,17 +135,20 @@ section 6 for the full writeup and citations.
   this as data, not scratch space — name files so it's clear what
   parameters produced them (rule range, seed count, date if it matters).
 - `site/` — the GitHub Pages site's source (React + Vite, four pages:
-  home/concepts/findings/explorer). `site/src/lib/groovy-engine.js` is a
-  hand-ported JS mirror of `src/groovy/*.py` (1D functions) plus a 2D
-  Life-like extension the Python package doesn't have yet — if you change
-  the Python math, update the JS to match, and vice versa. Static figures
-  the site embeds (e.g. `regime_heatmap.png`) live in
-  `site/public/assets/img/` (Vite's own static-passthrough convention,
-  distinct from the repo-root `public/`) and are produced by
-  `scripts/build_findings_assets.py` — keep that script as the source of
-  those PNGs rather than letting the site recompute full sweeps itself;
-  the site's live-computed charts (Findings page) work from small
-  hardcoded/checked-in datasets, not from re-running `scripts/`.
+  home/concepts/questions/explorer — the questions page was called
+  "findings" before a copy pass restructured it around named questions
+  each answered by embedded data, per the confidence-labeling convention).
+  `site/src/lib/groovy-engine.js` is a hand-ported JS mirror of
+  `src/groovy/*.py` (1D functions) plus a 2D Life-like extension the
+  Python package doesn't have yet — if you change the Python math, update
+  the JS to match, and vice versa. Static figures the site embeds (e.g.
+  `regime_heatmap.png`) live in `site/public/assets/img/` (Vite's own
+  static-passthrough convention, distinct from the repo-root `public/`)
+  and are produced by `scripts/build_findings_assets.py` — keep that
+  script as the source of those PNGs rather than letting the site
+  recompute full sweeps itself; the site's live-computed charts
+  (Questions page) work from small hardcoded/checked-in datasets, not
+  from re-running `scripts/`.
   **`vite.config.js`'s `base: '/groovy-commutator/'` is load-bearing** —
   this deploys as a GitHub Pages *project* site, not a user/root site, so
   every Vite-emitted asset URL needs that prefix or it 404s against the

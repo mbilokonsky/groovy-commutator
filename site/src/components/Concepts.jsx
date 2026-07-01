@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Nav from './Nav.jsx';
 import Watermark from './Watermark.jsx';
+import { AmbientCA2D } from './AmbientCA.jsx';
 
 function defaultInitState(n) {
   const arr = new Array(n).fill(0);
@@ -44,13 +45,13 @@ const REGIME_CANVAS_COLOR = {
 };
 
 const TOC = [
-  ['#xor', 'XOR'],
+  ['#ca', 'Cellular automata'],
+  ['#calculus', 'Boolean calculus'],
   ['#state', 'State → State'],
-  ['#ca', 'Elementary CA'],
-  ['#deg', 'D, E, G'],
+  ['#commutator', 'The commutator G'],
   ['#absential', 'Absential cells'],
   ['#secondorder', 'Reversible memory'],
-  ['#crossrule', 'Cross-rule pairs'],
+  ['#coupling', 'Coupling rules'],
   ['#metaevo', 'Rules birthing rules'],
   ['#open', 'Open questions'],
 ];
@@ -65,7 +66,9 @@ const OPEN_QUESTIONS = [
 const pill = { fontFamily: "'IBM Plex Mono',monospace", fontSize: '0.76rem', fontWeight: 600, textDecoration: 'none', background: 'var(--bg-alt)', color: 'var(--ink-soft)', padding: '0.35rem 0.7rem', borderRadius: 999 };
 const sectionKicker = { fontFamily: "'IBM Plex Mono',monospace", fontSize: '0.74rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--ink-soft)' };
 const h2Style = { fontFamily: "'Lora',serif", fontSize: '1.35rem', margin: '0.3em 0 0.5em', fontWeight: 600 };
+const h3Style = { fontFamily: "'Lora',serif", fontSize: '1.1rem', margin: '1.4em 0 0.5em', fontWeight: 600 };
 const pBody = { fontSize: '0.98rem', color: 'var(--ink-soft)', margin: '0 0 1.1rem', maxWidth: '60ch' };
+const formulaBlock = { fontFamily: "'IBM Plex Mono',monospace", background: 'var(--bg-alt)', border: '1px solid var(--rule)', padding: '0.9rem 1.1rem', borderRadius: 8, fontSize: '0.86rem', margin: '0 0 1.1rem' };
 
 export default function Concepts() {
   const [rule, setRule] = useState(110);
@@ -200,116 +203,95 @@ export default function Concepts() {
       </Watermark>
 
       <main style={{ maxWidth: 880, margin: '0 auto', padding: '2rem 1.25rem 4rem' }}>
+
         <div className="gc-mono" style={{ textTransform: 'uppercase', letterSpacing: '.09em', fontSize: '0.78rem', fontWeight: 700, color: 'var(--accent)', marginBottom: '0.5em' }}>concepts</div>
         <h1 style={{ fontFamily: "'Lora',serif", fontSize: 'clamp(1.8rem,5vw,2.4rem)', lineHeight: 1.25, margin: '0 0 0.4em', fontWeight: 600 }}>The building blocks, one at a time</h1>
         <p style={{ fontSize: '1.05rem', color: 'var(--ink-soft)', margin: '0 0 1.4em', maxWidth: '62ch' }}>
-          Everything on this site is built from a handful of small pieces. None of them are individually
-          complicated &mdash; play with each one before moving to the next.
+          Everything on this site is built from a handful of small pieces. None of them are individually complicated
+          &mdash; play with each one before moving to the next.
         </p>
 
         <nav style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', margin: '0 0 2rem' }}>
           {TOC.map(([href, label]) => <a key={href} href={href} style={pill}>{label}</a>)}
         </nav>
 
-        {/* XOR */}
-        <section id="xor" style={{ padding: '1.6rem 0', borderTop: '1px solid var(--rule)' }}>
-          <div style={sectionKicker}>Foundation</div>
-          <h2 style={h2Style}>XOR is the only operation you need</h2>
+        {/* CELLULAR AUTOMATA -- 1D and 2D, before any algebra */}
+        <section id="ca" style={{ padding: '1.6rem 0', borderTop: '1px solid var(--rule)' }}>
+          <div style={sectionKicker}>Substrate</div>
+          <h2 style={h2Style}>Cellular automata</h2>
           <p style={pBody}>
-            Every state in this project is a row of bits. The one operation almost everything is built from is{' '}
-            <strong>XOR</strong> (&oplus;) &mdash; it's 1 exactly where two bits disagree. Click the two bits below:
+            A row of cells on a circular lattice. Each tick, every cell looks at itself and its two neighbors (8
+            possible 3-cell patterns) and outputs 0 or 1. That 8-entry lookup table, read as a number, is the{' '}
+            <strong>rule number</strong> &mdash; rule 110, rule 30, rule 90, and so on. That's <strong>one
+            dimension</strong>. Everything below builds from the 1D case, but the same idea generalizes to a grid:
+            each cell looks at its 8 neighbors (Moore neighborhood) instead of 2, and the rule is usually written as
+            "born on N neighbors, survive on M" (<strong>B/S notation</strong>) &mdash; Conway's Life is B3/S23.
+            Here's Life, running on its own, no controls, just for texture:
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', flexWrap: 'wrap' }}>
-            <button onClick={() => setXorA(xorA ? 0 : 1)} className="gc-mono" style={{ fontWeight: 800, fontSize: '1.3rem', width: 54, height: 54, borderRadius: 8, border: '1px solid var(--accent)', background: xorA ? ON_COLOR : OFF_COLOR, cursor: 'pointer' }}></button>
-            <span className="gc-mono" style={{ fontSize: '1.1rem', color: 'var(--ink-soft)' }}>&oplus;</span>
-            <button onClick={() => setXorB(xorB ? 0 : 1)} className="gc-mono" style={{ fontWeight: 800, fontSize: '1.3rem', width: 54, height: 54, borderRadius: 8, border: '1px solid var(--accent)', background: xorB ? ON_COLOR : OFF_COLOR, cursor: 'pointer' }}></button>
-            <span className="gc-mono" style={{ fontSize: '1.1rem', color: 'var(--ink-soft)' }}>=</span>
-            <div className="gc-mono" style={{ fontWeight: 800, fontSize: '1.3rem', width: 54, height: 54, borderRadius: 8, border: '1px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: xorResult ? ON_COLOR : OFF_COLOR, color: xorResult ? '#faf7f0' : '#2a2420' }}>{xorResult}</div>
-          </div>
-          <p style={{ fontSize: '0.84rem', color: 'var(--ink-soft)', margin: '0.9rem 0 0' }}>GF(2) just means "the two-element field" &mdash; arithmetic where 1 + 1 = 0. That's XOR.</p>
-        </section>
-
-        {/* STATE -> STATE */}
-        <section id="state" style={{ padding: '1.6rem 0', borderTop: '1px solid var(--rule)' }}>
-          <div style={sectionKicker}>Foundation</div>
-          <h2 style={h2Style}>Everything is State &rarr; State</h2>
-          <p style={pBody}>
-            Every instrument below &mdash; the derivative, the commutator, the absential mask, a reversible memory
-            step &mdash; takes a row of <code className="gc-code">n</code> bits in and returns <em>another row of n
-            bits</em> out. Nothing compresses, expands, or reinterprets the state &mdash; which is what makes every
-            instrument stackable, comparable, and renderable the same way.
-          </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', flexWrap: 'wrap' }}>
-            <div className="gc-mono" style={{ fontSize: '0.8rem', fontWeight: 700, padding: '0.6rem 0.9rem', border: '1px solid var(--rule)', borderRadius: 7, background: '#fff' }}>State (n bits)</div>
-            <span style={{ color: 'var(--accent)', fontSize: '1.1rem' }}>&rarr;</span>
-            <div className="gc-mono" style={{ fontSize: '0.8rem', fontWeight: 700, padding: '0.6rem 0.9rem', border: '1px solid var(--accent)', borderRadius: 7, background: 'var(--accent-soft)', color: 'var(--accent-dark)' }}>instrument</div>
-            <span style={{ color: 'var(--accent)', fontSize: '1.1rem' }}>&rarr;</span>
-            <div className="gc-mono" style={{ fontSize: '0.8rem', fontWeight: 700, padding: '0.6rem 0.9rem', border: '1px solid var(--rule)', borderRadius: 7, background: '#fff' }}>State (n bits)</div>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.4rem', flexWrap: 'wrap' }}>
+            <AmbientCA2D size={180} />
+            <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', maxWidth: '42ch', margin: 0 }}>
+              Every instrument on this page (derivative, commutator, absential field, reversible memory) is defined
+              identically for 1D and 2D &mdash; only the neighborhood changes. The <a href="explorer.html" style={{ color: 'var(--accent)' }}>explorer</a>{' '}
+              lets you build and couple 2D rules the same way as 1D. The rest of this page works the 1D case by hand,
+              since it's easier to see clearly.
+            </p>
           </div>
         </section>
 
-        {/* STICKY PANEL + CA / DEG / ABSENTIAL / SECONDORDER */}
+        {/* STICKY RULE + STARTING-ROW PANEL, shared by everything below through Instruments */}
         <div style={{ position: 'relative' }}>
           <div ref={sentinelRef} style={{ height: 1 }}></div>
           <div style={stickyPanelStyle}>
             <div style={{ maxWidth: 880, margin: '0 auto', padding: '0.8rem 1.25rem 0.9rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
-                <span className="gc-mono" style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--ink-soft)' }}>Rule</span>
-                <input type="number" min="0" max="255" value={ruleInputText} onChange={handleRuleInputChange} onBlur={handleRuleInputBlur}
-                  className="gc-mono" style={{ width: '4.2rem', fontSize: '1rem', fontWeight: 700, textAlign: 'center', padding: '0.35rem 0.3rem', borderRadius: 6, border: '1px solid var(--accent)', background: '#fff', color: 'var(--ink)' }} />
-                <span className="gc-mono" style={{ fontSize: '0.72rem', color: 'var(--ink-soft)' }}>(0&ndash;255)</span>
-              </div>
-              <p className="gc-mono" style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', textAlign: 'center', margin: '0 0 0.7rem' }}>
-                quick picks:{' '}
-                {RULE_CATALOG.map((r, i) => {
-                  const active = r.num === rule;
-                  return (
-                    <span key={r.num}>
-                      <button onClick={() => selectRule(r.num)} className="gc-mono" style={{ fontSize: '0.78rem', fontWeight: 700, padding: 0, border: 'none', background: 'none', cursor: 'pointer', textDecoration: active ? 'underline' : 'none', color: active ? ACCENT : INK_SOFT }}>{r.num}</button>
-                      {i < RULE_CATALOG.length - 1 ? ' · ' : ''}
-                    </span>
-                  );
-                })}
-              </p>
 
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 4, flexWrap: 'wrap', marginBottom: '0.5rem' }}>
-                {selectedGlyphs.map((nb) => (
-                  <div key={nb.idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, border: '1px solid var(--ink-soft)', borderRadius: 4, padding: 3 }}>
-                    <div style={{ display: 'flex', gap: 1 }}>
-                      <div style={{ width: 9, height: 9, border: '1px solid var(--ink)', background: nb.l ? ON_COLOR : OFF_COLOR }}></div>
-                      <div style={{ width: 9, height: 9, border: '1px solid var(--ink)', background: nb.c ? ON_COLOR : OFF_COLOR }}></div>
-                      <div style={{ width: 9, height: 9, border: '1px solid var(--ink)', background: nb.r ? ON_COLOR : OFF_COLOR }}></div>
-                    </div>
-                    <button onClick={() => toggleOutputBit(nb.idx)} style={{ width: 9, height: 9, padding: 0, border: '1.5px solid var(--accent)', background: nb.out ? ON_COLOR : OFF_COLOR, cursor: 'pointer' }}></button>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+              <span className="gc-mono" style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--ink-soft)' }}>Rule</span>
+              <input type="number" min="0" max="255" value={ruleInputText} onChange={handleRuleInputChange} onBlur={handleRuleInputBlur}
+                className="gc-mono" style={{ width: '4.2rem', fontSize: '1rem', fontWeight: 700, textAlign: 'center', padding: '0.35rem 0.3rem', borderRadius: 6, border: '1px solid var(--accent)', background: '#fff', color: 'var(--ink)' }} />
+              <span className="gc-mono" style={{ fontSize: '0.72rem', color: 'var(--ink-soft)' }}>(0&ndash;255)</span>
+            </div>
+            <p className="gc-mono" style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', textAlign: 'center', margin: '0 0 0.7rem' }}>
+              quick picks:{' '}
+              {RULE_CATALOG.map((r, i) => {
+                const active = r.num === rule;
+                return (
+                  <span key={r.num}>
+                    <button onClick={() => selectRule(r.num)} className="gc-mono" style={{ fontSize: '0.78rem', fontWeight: 700, padding: 0, border: 'none', background: 'none', cursor: 'pointer', textDecoration: active ? 'underline' : 'none', color: active ? ACCENT : INK_SOFT }}>{r.num}</button>
+                    {i < RULE_CATALOG.length - 1 ? ' · ' : ''}
+                  </span>
+                );
+              })}
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 4, flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+              {selectedGlyphs.map((nb) => (
+                <div key={nb.idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, border: '1px solid var(--ink-soft)', borderRadius: 4, padding: 3 }}>
+                  <div style={{ display: 'flex', gap: 1 }}>
+                    <div style={{ width: 9, height: 9, border: '1px solid var(--ink)', background: nb.l ? ON_COLOR : OFF_COLOR }}></div>
+                    <div style={{ width: 9, height: 9, border: '1px solid var(--ink)', background: nb.c ? ON_COLOR : OFF_COLOR }}></div>
+                    <div style={{ width: 9, height: 9, border: '1px solid var(--ink)', background: nb.r ? ON_COLOR : OFF_COLOR }}></div>
                   </div>
-                ))}
-              </div>
-              <p className="gc-mono" style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', margin: '0 0 0.7rem', textAlign: 'center' }}>
-                Rule {rule} is {activeRule && activeRule.cls ? `informally Class ${activeRule.cls}` : 'not in the informal class set'} &mdash; 3 cells in (top, fixed) &rarr; 1 output (bottom, click to flip &mdash; builds your own rule live).
-              </p>
+                  <button onClick={() => toggleOutputBit(nb.idx)} style={{ width: 9, height: 9, padding: 0, border: '1.5px solid var(--accent)', background: nb.out ? ON_COLOR : OFF_COLOR, cursor: 'pointer' }}></button>
+                </div>
+              ))}
+            </div>
+            <p className="gc-mono" style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', margin: '0 0 0.7rem', textAlign: 'center' }}>{`Rule ${rule} is ${activeRule && activeRule.cls ? `informally Class ${activeRule.cls}` : 'not in the informal class set'} — 3 cells in (top, fixed) → 1 output (bottom, click to flip — builds your own rule live).`}</p>
 
-              <div style={{ borderTop: '1px dashed var(--rule)', margin: '0 0 0.7rem' }}></div>
+            <div style={{ borderTop: '1px dashed var(--rule)', margin: '0 0 0.7rem' }}></div>
 
-              <p className="gc-mono" style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--ink-soft)', textAlign: 'center', margin: '0 0 0.4rem' }}>
-                Starting row &mdash; click a cell to toggle it, or{' '}
-                <button onClick={rerollInit} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', textDecoration: 'underline', font: 'inherit', padding: 0 }}>randomize</button>
-              </p>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 1, overflowX: 'auto' }}>
-                {initState.map((bit, i) => (
-                  <button key={i} onClick={() => toggleCell(i)} style={{ width: 9, height: 9, padding: 0, border: '1px solid var(--ink)', background: bit ? ON_COLOR : OFF_COLOR, cursor: 'pointer', flex: 'none' }}></button>
-                ))}
-              </div>
+            <p className="gc-mono" style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--ink-soft)', textAlign: 'center', margin: '0 0 0.4rem' }}>Starting row &mdash; click a cell to toggle it, or{' '}
+              <button onClick={rerollInit} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', textDecoration: 'underline', font: 'inherit', padding: 0 }}>randomize</button>
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 1, overflowX: 'auto' }}>
+              {initState.map((bit, i) => (
+                <button key={i} onClick={() => toggleCell(i)} style={{ width: 9, height: 9, padding: 0, border: '1px solid var(--ink)', background: bit ? ON_COLOR : OFF_COLOR, cursor: 'pointer', flex: 'none' }}></button>
+              ))}
+            </div>
             </div>
           </div>
 
-          <section id="ca" style={{ padding: '1.6rem 0' }}>
-            <div style={sectionKicker}>Substrate</div>
-            <h2 style={h2Style}>Elementary cellular automata</h2>
-            <p style={pBody}>
-              A row of cells on a circular lattice. Each tick, every cell looks at itself and its two neighbors (8
-              possible 3-cell patterns) and outputs 0 or 1. That 8-entry lookup table, read as a number, is the{' '}
-              <strong>rule number</strong>.
-            </p>
+          <section style={{ padding: '1.6rem 0' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.4rem', flexWrap: 'wrap' }}>
               <div>
                 <canvas className="gc-field" ref={caRef}></canvas>
@@ -318,27 +300,40 @@ export default function Concepts() {
               <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', maxWidth: '42ch', margin: 0 }}>
                 The textbook Wolfram class labels above are informal, not rigorous &mdash; see{' '}
                 <code className="gc-code">classify.py</code>. Edit the starting row above (or randomize it) and
-                watch every view on this page update from it.
+                watch every view on this page update from it, including everything in the next few sections.
               </p>
             </div>
           </section>
 
-          <section id="deg" style={{ padding: '1.6rem 0', borderTop: '1px solid var(--rule)', background: 'var(--bg)' }}>
-            <div style={sectionKicker}>Instrument</div>
-            <h2 style={h2Style}>D, E, and the single-rule commutator G</h2>
-            <div className="gc-mono" style={{ background: 'var(--bg-alt)', border: '1px solid var(--rule)', padding: '0.9rem 1.1rem', borderRadius: 8, fontSize: '0.86rem', margin: '0 0 1.1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', margin: '0.15em 0' }}><span>D(S) = S &oplus; &phi;(S)</span><span style={{ color: 'var(--ink-soft)', fontSize: '0.7rem' }}>what changed</span></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', margin: '0.15em 0' }}><span>E(S) = &phi;(S)</span><span style={{ color: 'var(--ink-soft)', fontSize: '0.7rem' }}>one step</span></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', margin: '0.15em 0' }}><span>G(S) = C(D(E(S)), E(D(S)))</span><span style={{ color: 'var(--ink-soft)', fontSize: '0.7rem' }}>order agree?</span></div>
+          {/* BOOLEAN CALCULUS */}
+          <section id="calculus" style={{ padding: '1.6rem 0', borderTop: '1px solid var(--rule)' }}>
+            <div style={sectionKicker}>Foundation</div>
+            <h2 style={h2Style}>Boolean calculus</h2>
+            <p style={pBody}>
+              Every state above is a row of bits. Almost everything from here on is built from a single operation:{' '}
+              <strong>XOR</strong> (&oplus;) &mdash; it's 1 exactly where two bits disagree. Click the two bits below:
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', flexWrap: 'wrap' }}>
+              <button onClick={() => setXorA(xorA ? 0 : 1)} className="gc-mono" style={{ fontWeight: 800, fontSize: '1.3rem', width: 54, height: 54, borderRadius: 8, border: '1px solid var(--accent)', background: xorA ? ON_COLOR : OFF_COLOR, cursor: 'pointer' }}></button>
+              <span className="gc-mono" style={{ fontSize: '1.1rem', color: 'var(--ink-soft)' }}>&oplus;</span>
+              <button onClick={() => setXorB(xorB ? 0 : 1)} className="gc-mono" style={{ fontWeight: 800, fontSize: '1.3rem', width: 54, height: 54, borderRadius: 8, border: '1px solid var(--accent)', background: xorB ? ON_COLOR : OFF_COLOR, cursor: 'pointer' }}></button>
+              <span className="gc-mono" style={{ fontSize: '1.1rem', color: 'var(--ink-soft)' }}>=</span>
+              <div className="gc-mono" style={{ fontWeight: 800, fontSize: '1.3rem', width: 54, height: 54, borderRadius: 8, border: '1px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: xorResult ? ON_COLOR : OFF_COLOR, color: xorResult ? '#faf7f0' : '#2a2420' }}>{xorResult}</div>
+            </div>
+            <p style={{ fontSize: '0.84rem', color: 'var(--ink-soft)', margin: '0.9rem 0 1.6rem' }}>GF(2) just means "the two-element field" &mdash; arithmetic where 1 + 1 = 0. That's XOR.</p>
+
+            <h3 style={h3Style}>Comparison and differentiation</h3>
+            <div style={formulaBlock}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', margin: '0.15em 0' }}><span>C(a, b) = a &oplus; b</span><span style={{ color: 'var(--ink-soft)', fontSize: '0.7rem' }}>comparison</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', margin: '0.15em 0' }}><span>D(S) = C(S, &phi;(S)) = S &oplus; &phi;(S)</span><span style={{ color: 'var(--ink-soft)', fontSize: '0.7rem' }}>what changed</span></div>
             </div>
             <p style={pBody}>
-              <strong>The affine theorem:</strong> G(S) is the same for every possible S, forever, if and only if
-              &phi; is GF(2)-affine. Checked live against Rule {rule}'s own lookup table:{' '}
-              {isAffine === null ? 'checking…'
-                : isAffine ? 'this rule is GF(2)-affine — G is the same constant for every state, every step.'
-                : 'this rule is not affine — G is not constant; watch the third strip churn.'}
+              <code className="gc-code">C</code> is just XOR again, named for the role it plays: comparing two
+              states bit by bit. <code className="gc-code">D</code> uses it to ask the smallest possible question
+              about a rule &mdash; compare the state to what the rule turns it into, one step later. Raw state and
+              D(S), for Rule {rule}:
             </p>
-            <div className="gc-lens-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1rem' }}>
+            <div className="gc-lens-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '1rem', maxWidth: 420 }}>
               <div>
                 <canvas className="gc-field" ref={caRef2} style={{ width: '100%', height: 'auto', aspectRatio: '1' }}></canvas>
                 <div className="gc-mono" style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', marginTop: '0.3rem' }}>raw state</div>
@@ -347,10 +342,78 @@ export default function Concepts() {
                 <canvas className="gc-field" ref={dRef} style={{ width: '100%', height: 'auto', aspectRatio: '1' }}></canvas>
                 <div className="gc-mono" style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', marginTop: '0.3rem' }}>D(S)</div>
               </div>
-              <div>
-                <canvas className="gc-field" ref={gRef} style={{ width: '100%', height: 'auto', aspectRatio: '1' }}></canvas>
-                <div className="gc-mono" style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', marginTop: '0.3rem' }}>G(S)</div>
-              </div>
+            </div>
+
+            <h3 style={h3Style}>Integration, and why evolution is Euler's method in disguise</h3>
+            <div style={formulaBlock}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', margin: '0.15em 0' }}><span>I(a, b) = a &oplus; b</span><span style={{ color: 'var(--ink-soft)', fontSize: '0.7rem' }}>integration</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', margin: '0.15em 0' }}><span>E(S) = I(S, D(S))</span><span style={{ color: 'var(--ink-soft)', fontSize: '0.7rem' }}>evolution</span></div>
+            </div>
+            <p style={pBody}>
+              <code className="gc-code">I</code> is the same arithmetic as <code className="gc-code">C</code> &mdash;
+              XOR, again &mdash; but asked in the opposite direction: instead of "how do these two states differ,"
+              it's "fold this difference back into a state." That's ordinary numerical integration, discretized:
+              Euler's method updates <code className="gc-code">y</code> by <code className="gc-code">y + h&middot;f(y)</code>{' '}
+              each step; here the step size <code className="gc-code">h</code> is 1, addition is XOR, and the rate of
+              change <code className="gc-code">f</code> is exactly <code className="gc-code">D</code>. Integrating the
+              derivative back into the state is <code className="gc-code">E</code> itself:
+            </p>
+            <div style={formulaBlock}>
+              <div>E(S) = I(S, D(S)) = S &oplus; (S &oplus; &phi;(S)) = &phi;(S)</div>
+            </div>
+            <p style={pBody}>
+              Evolution isn't a second, independent rule &mdash; it's what you get from integrating the derivative
+              back into the state, over GF(2). <code className="gc-code">I</code> and <code className="gc-code">C</code>{' '}
+              being the same operation isn't a coincidence to paper over; it's the point. Comparison and integration
+              are the same move, XOR, asked of two different questions.
+            </p>
+          </section>
+
+          {/* STATE -> STATE */}
+          <section id="state" style={{ padding: '1.6rem 0', borderTop: '1px solid var(--rule)' }}>
+            <div style={sectionKicker}>Foundation</div>
+            <h2 style={h2Style}>Everything is State &rarr; State</h2>
+            <p style={pBody}>
+              <code className="gc-code">D</code>, <code className="gc-code">E</code>, and every instrument below take
+              a row of <code className="gc-code">n</code> bits in and return <em>another row of n bits</em> out.
+              Nothing compresses, expands, or reinterprets the state &mdash; which is what makes every instrument
+              stackable, comparable, and renderable the same way, and what makes an open-ended{' '}
+              <a href="explorer.html" style={{ color: 'var(--accent)' }}>explorer</a> possible at all: nothing needs
+              a bespoke UI per instrument, because every instrument is the same shape of thing.
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', flexWrap: 'wrap' }}>
+              <div className="gc-mono" style={{ fontSize: '0.8rem', fontWeight: 700, padding: '0.6rem 0.9rem', border: '1px solid var(--rule)', borderRadius: 7, background: '#fff' }}>State (n bits)</div>
+              <span style={{ color: 'var(--accent)', fontSize: '1.1rem' }}>&rarr;</span>
+              <div className="gc-mono" style={{ fontSize: '0.8rem', fontWeight: 700, padding: '0.6rem 0.9rem', border: '1px solid var(--accent)', borderRadius: 7, background: 'var(--accent-soft)', color: 'var(--accent-dark)' }}>instrument</div>
+              <span style={{ color: 'var(--accent)', fontSize: '1.1rem' }}>&rarr;</span>
+              <div className="gc-mono" style={{ fontSize: '0.8rem', fontWeight: 700, padding: '0.6rem 0.9rem', border: '1px solid var(--rule)', borderRadius: 7, background: '#fff' }}>State (n bits)</div>
+            </div>
+          </section>
+
+          {/* INSTRUMENTS: G, ABSENTIAL, SECOND-ORDER */}
+          <section id="commutator" style={{ padding: '1.6rem 0', borderTop: '1px solid var(--rule)', background: 'var(--bg)' }}>
+            <div style={sectionKicker}>Instrument</div>
+            <h2 style={h2Style}>The single-rule commutator G</h2>
+            <div style={formulaBlock}>
+              <div>G(S) = C(D(E(S)), E(D(S)))</div>
+            </div>
+            <p style={pBody}>
+              Differentiate-then-evolve, compared against evolve-then-differentiate: does order agree? Same
+              construction as the commutator <code className="gc-code">[A,B] = AB - BA</code> from ordinary algebra
+              &mdash; it shows up famously in quantum mechanics (position and momentum don't commute), but the
+              construction itself is older and more general than physics; QM is one place it happens to appear, not
+              where it comes from.
+            </p>
+            <p style={pBody}>
+              <strong>The affine theorem:</strong> G(S) is the same for every possible S, forever, if and only if
+              &phi; is GF(2)-affine. Checked live against Rule {rule}'s own lookup table:{' '}
+              {isAffine === null ? 'checking…'
+                : isAffine ? 'this rule is GF(2)-affine — G is the same constant for every state, every step.'
+                : 'this rule is not affine — G is not constant; watch the strip below churn.'}
+            </p>
+            <div>
+              <canvas className="gc-field" ref={gRef} style={{ width: 160, height: 160 }}></canvas>
+              <div className="gc-mono" style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', marginTop: '0.3rem' }}>G(S), compare to D(S) above</div>
             </div>
           </section>
 
@@ -370,7 +433,7 @@ export default function Concepts() {
               <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', maxWidth: '42ch', margin: 0 }}>
                 Open question this raises: does this field's own compressibility work as a faster Class-IV detector
                 than looking at G or the raw state? First test didn't confirm it &mdash; see the{' '}
-                <a href="findings.html#absential" style={{ color: 'var(--accent)' }}>findings page</a>.
+                <a href="questions.html#absential" style={{ color: 'var(--accent)' }}>questions page</a>.
               </p>
             </div>
           </section>
@@ -378,7 +441,7 @@ export default function Concepts() {
           <section id="secondorder" style={{ padding: '1.6rem 0', borderTop: '1px solid var(--rule)' }}>
             <div style={sectionKicker}>Instrument</div>
             <h2 style={h2Style}>Reversible memory (second-order CA)</h2>
-            <div className="gc-mono" style={{ background: 'var(--bg-alt)', border: '1px solid var(--rule)', padding: '0.7rem 1rem', borderRadius: 8, fontSize: '0.86rem', margin: '0 0 1rem' }}>
+            <div style={formulaBlock}>
               S(t+1) = &phi;(S(t)) &oplus; S(t&minus;1)
             </div>
             <p style={pBody}>
@@ -398,14 +461,15 @@ export default function Concepts() {
           </section>
         </div>
 
-        {/* CROSS RULE PAIRS */}
-        <section id="crossrule" style={{ padding: '1.6rem 0', borderTop: '1px solid var(--rule)' }}>
+        {/* COUPLING */}
+        <section id="coupling" style={{ padding: '1.6rem 0', borderTop: '1px solid var(--rule)' }}>
           <div style={sectionKicker}>Instrument</div>
-          <h2 style={h2Style}>Cross-rule pairs and the five regimes</h2>
+          <h2 style={h2Style}>Coupling two rules</h2>
           <p style={{ ...pBody, marginBottom: '1rem' }}>
-            Instead of asking whether a rule commutes with itself, ask whether two <em>different</em> rules commute.
-            Run one shared starting row two ways &mdash; A-then-B, and B-then-A &mdash; and watch the two paths
-            disagree over time. The disagreement reliably settles into one of five shapes:
+            Everything above acts on one state under one rule. The natural next move: let two <em>different</em>{' '}
+            rules act on the same shared starting state, and ask whether the order they're applied in matters. Run
+            one shared starting row two ways &mdash; A-then-B, and B-then-A &mdash; and watch the two paths disagree
+            over time. The disagreement reliably settles into one of five shapes:
           </p>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', margin: '0 0 1.2rem' }}>
             {PAIR_PRESETS.map((p, idx) => {
@@ -429,8 +493,10 @@ export default function Concepts() {
           <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', margin: '1.1rem 0 0', maxWidth: '60ch' }}>
             <strong>Structured divergence has no single-rule analog</strong> &mdash; for one rule against itself
             there's nowhere for "persistently related but never identical" to live. It only shows up once two
-            distinct rules are in play, and the full sweep (findings page) found it's actually the <em>most
-            common</em> outcome.
+            distinct rules are in play. Coupling rules at scale &mdash; which regimes are common, what predicts
+            them &mdash; is exactly the kind of thing this construction makes askable; see the{' '}
+            <a href="questions.html" style={{ color: 'var(--accent)' }}>questions page</a> for what's actually been
+            found.
           </p>
         </section>
 
@@ -443,7 +509,7 @@ export default function Concepts() {
             rule</em> each generation, classify the parent&rarr;child handoff with the same five-regime diagnostic
             above, then hand control to the child. Lineages reliably wander for a few generations, then lock into a
             small repeating cycle in rule space itself &mdash; see the{' '}
-            <a href="findings.html#meta-evolution" style={{ color: 'var(--accent)' }}>findings page</a> for a live
+            <a href="questions.html#meta-evolution" style={{ color: 'var(--accent)' }}>questions page</a> for a live
             version of this you can re-run yourself.
           </p>
         </section>
@@ -452,6 +518,10 @@ export default function Concepts() {
         <section id="open" style={{ padding: '1.6rem 0 2rem', borderTop: '1px solid var(--rule)' }}>
           <div style={sectionKicker}>Where the curiosity is pointed right now</div>
           <h2 style={{ ...h2Style, margin: '0.3em 0 0.9em' }}>Open questions</h2>
+          <p style={pBody}>
+            A quick preview &mdash; the <a href="questions.html" style={{ color: 'var(--accent)' }}>questions page</a>{' '}
+            covers these (and the ones we do have data for) properly.
+          </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '0.8rem' }}>
             {OPEN_QUESTIONS.map(([title, body]) => (
               <div key={title} style={{ background: '#fff', border: '1px solid var(--rule)', borderRadius: 8, padding: '0.9rem 1rem' }}>
@@ -460,6 +530,7 @@ export default function Concepts() {
             ))}
           </div>
         </section>
+
       </main>
 
       <footer className="gc-footer">

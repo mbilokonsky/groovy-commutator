@@ -1,7 +1,7 @@
 const PAGES = [
   { href: 'index.html', label: 'Home', key: 'home' },
   { href: 'concepts.html', label: 'Concepts', key: 'concepts' },
-  { href: 'findings.html', label: 'Findings', key: 'findings' },
+  { href: 'questions.html', label: 'Questions', key: 'questions' },
   { href: 'explorer.html', label: 'Explorer', key: 'explorer' },
 ];
 

@@ -25,13 +25,15 @@ rules. Origin: https://liet-codes.github.io/wet-math/commutator.html
   `sweep_full_classified.parquet` (regime-labeled, joined with image_ratio),
   `sweep_summary.csv`, `image_ratios.csv`.
 - `site/` — source for the GitHub Pages site (React + Vite): four pages —
-  home, concepts (boolean calculus, the State&rarr;State shape, each
-  instrument, all with live in-browser demos), findings (confidence-labeled
-  results with live-recomputed charts), and explorer (a card-based tool for
-  composing the instruments yourself, 1D or 2D). `site/src/lib/groovy-engine.js`
-  is the client-side reimplementation of `src/groovy/*.py` — keep them in
-  sync. Dev server: `npm run dev --prefix site`; build:
-  `npm run build --prefix site` (outputs to `public/`).
+  home, concepts (cellular automata, boolean calculus incl. the `I`/Euler-
+  integration reading of evolution, the State&rarr;State shape, each
+  instrument, all with live in-browser demos), questions (named questions
+  answered by embedded, confidence-labeled data — including ones still
+  open), and explorer (a card-based tool for composing the instruments
+  yourself, 1D or 2D). `site/src/lib/groovy-engine.js` is the client-side
+  reimplementation of `src/groovy/*.py` — keep them in sync. Dev server:
+  `npm run dev --prefix site`; build: `npm run build --prefix site`
+  (outputs to `public/`).
 - `public/` — **generated** by the `site/` build, gitignored, deployed to
   GitHub Pages by `.github/workflows/pages.yml`. Don't edit directly. The
   handful of static figures the pages embed (e.g. the full 256×256 regime

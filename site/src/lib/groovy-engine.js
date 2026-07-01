@@ -171,7 +171,7 @@ function approxStructureScore(packed) {
 // zlib-compressed-size / raw-size analog, computed live via the browser's
 // native deflate implementation. Same SHAPE of metric as metrics.compressibility
 // (lower = more structured/compressible) but not numerically identical to the
-// zlib level-9 figures published on the findings page — labeled as such
+// zlib level-9 figures published on the questions page — labeled as such
 // wherever it's shown.
 export async function compressibility(field) {
   const packed = packBits(field);

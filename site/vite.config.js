@@ -22,7 +22,7 @@ export default defineConfig({
       input: {
         home: resolve(__dirname, 'index.html'),
         concepts: resolve(__dirname, 'concepts.html'),
-        findings: resolve(__dirname, 'findings.html'),
+        questions: resolve(__dirname, 'questions.html'),
         explorer: resolve(__dirname, 'explorer.html'),
       },
     },

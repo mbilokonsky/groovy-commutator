@@ -45,7 +45,7 @@ function centerSeedIC(n) {
 const NAV_PAGES = [
   { href: 'index.html', label: 'Home' },
   { href: 'concepts.html', label: 'Concepts' },
-  { href: 'findings.html', label: 'Findings' },
+  { href: 'questions.html', label: 'Questions' },
   { href: 'explorer.html', label: 'Explorer', active: true },
 ];
 

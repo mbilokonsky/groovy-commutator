@@ -1,13 +1,6 @@
 import Nav from './Nav.jsx';
 import Watermark from './Watermark.jsx';
-
-const REGIMES = [
-  { key: 'commute', label: 'commute' },
-  { key: 'crystalline', label: 'crystalline' },
-  { key: 'noisy', label: 'noisy' },
-  { key: 'structured', label: 'structured' },
-  { key: 'drain', label: 'drain' },
-];
+import { AmbientCA1D } from './AmbientCA.jsx';
 
 export default function Home() {
   return (
@@ -22,82 +15,35 @@ export default function Home() {
       <main style={{ maxWidth: 880, margin: '0 auto', padding: '2rem 1.25rem 4rem' }}>
         <section style={{ padding: '1.6rem 0 0.5rem' }}>
           <div className="gc-mono" style={{ textTransform: 'uppercase', letterSpacing: '.09em', fontSize: '0.78rem', fontWeight: 700, color: 'var(--accent)', marginBottom: '0.7em' }}>
-            cellular automata &middot; operator commutators
+            boolean calculus &middot; instruments &middot; open questions
           </div>
           <h1 style={{ fontFamily: "'Lora',serif", fontSize: 'clamp(1.9rem,5vw,2.6rem)', lineHeight: 1.25, margin: '0 0 0.5em', fontWeight: 600, letterSpacing: '-0.01em' }}>
-            What happens when two simple rules don't agree on what happens next?
+            One operation on bits. A surprising number of things fall out of it.
           </h1>
-          <p style={{ fontSize: '1.12rem', color: 'var(--ink-soft)', margin: '0 0 1.4em', maxWidth: '62ch' }}>
-            Take the quantum-mechanical idea of a commutator &mdash; does the order of two operations matter &mdash;
-            and ask it of the simplest dynamical systems there are: one-dimensional elementary cellular automata.
-            The answer turns out to have five distinct shapes, one of which has no analog at all for a single rule
-            acting on itself.
+          <p style={{ fontSize: '1.12rem', color: 'var(--ink-soft)', margin: '0 0 1.8em', maxWidth: '62ch' }}>
+            Every state here is a row of bits, and almost everything is built from a single operation &mdash; XOR.
+            From that alone: a derivative, an integral, a commutator that turns out to behave like the one in quantum
+            mechanics, rules that mutate their own rulebook, and a handful of genuinely open questions about what
+            happens when two of these systems are made to interact.
           </p>
-          <div className="gc-cta" style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap', margin: '0 0 1.8em' }}>
+
+          <AmbientCA1D />
+
+          <div className="gc-cta" style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap', margin: '1.8em 0 0' }}>
             <a href="concepts.html" className="gc-mono" style={{ display: 'inline-block', fontWeight: 700, fontSize: '0.92rem', textDecoration: 'none', padding: '0.7rem 1.3rem', borderRadius: 7, border: '1px solid var(--accent)', background: 'var(--accent)', color: '#fff' }}>
-              Start with the concepts &rarr;
+              Learn the calculus &rarr;
             </a>
-            <a href="findings.html" className="gc-mono" style={{ display: 'inline-block', fontWeight: 700, fontSize: '0.92rem', textDecoration: 'none', padding: '0.7rem 1.3rem', borderRadius: 7, border: '1px solid var(--accent)', background: 'transparent', color: 'var(--accent)' }}>
-              Jump to findings
+            <a href="questions.html" className="gc-mono" style={{ display: 'inline-block', fontWeight: 700, fontSize: '0.92rem', textDecoration: 'none', padding: '0.7rem 1.3rem', borderRadius: 7, border: '1px solid var(--accent)', background: 'transparent', color: 'var(--accent)' }}>
+              See what we've asked
             </a>
-          </div>
-          <div className="gc-mono" style={{ background: 'var(--bg-alt)', border: '1px solid var(--rule)', padding: '1rem 1.3rem', borderRadius: 8, fontSize: '0.95rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', margin: '0.2em 0' }}>
-              <span>D(S) = S &oplus; &phi;(S)</span>
-              <span style={{ color: 'var(--ink-soft)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '.03em' }}>differentiation</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', margin: '0.2em 0' }}>
-              <span>E(S) = &phi;(S)</span>
-              <span style={{ color: 'var(--ink-soft)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '.03em' }}>evolution</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', margin: '0.2em 0' }}>
-              <span>G(S) = C(D(E(S)), E(D(S)))</span>
-              <span style={{ color: 'var(--ink-soft)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '.03em' }}>the commutator</span>
-            </div>
           </div>
         </section>
 
-        <section style={{ padding: '2rem 0' }}>
-          <h2 style={{ fontFamily: "'Lora',serif", fontSize: 'clamp(1.3rem,4vw,1.6rem)', margin: '0 0 0.9em', fontWeight: 600 }}>At a glance</h2>
-          <div className="gc-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1rem', marginBottom: '1.6rem' }}>
-            {[
-              ['256', 'elementary CA rules swept'],
-              ['32,640', 'unordered rule pairs, 5 seeds each'],
-              ['5', 'empirical regimes a pair can fall into'],
-            ].map(([num, label]) => (
-              <div key={label} style={{ background: '#fff', border: '1px solid var(--rule)', borderRadius: 10, padding: '1.1rem 1rem', textAlign: 'center' }}>
-                <div className="gc-mono" style={{ fontWeight: 800, fontSize: '1.7rem', color: 'var(--accent)' }}>{num}</div>
-                <div className="gc-mono" style={{ fontSize: '0.78rem', color: 'var(--ink-soft)', marginTop: '0.2em' }}>{label}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', marginBottom: '1.4rem' }}>
-            {REGIMES.map((r) => (
-              <span key={r.key} className="gc-mono" style={{ display: 'flex', alignItems: 'center', gap: '0.4em', fontSize: '0.74rem', fontWeight: 600, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '.02em' }}>
-                <span style={{ width: 9, height: 9, borderRadius: '50%', background: `var(--${r.key})` }}></span>{r.label}
-              </span>
-            ))}
-          </div>
+        <section style={{ padding: '2rem 0 0.5rem', borderTop: '1px solid var(--rule)', marginTop: '2rem' }}>
           <p style={{ fontSize: '1rem', color: 'var(--ink-soft)', margin: 0 }}>
-            Full breakdown, the regime that turned out to dominate, and where the newer instruments (absential cells,
-            reversible memory, rules birthing rules) currently stand are all on the{' '}
-            <a href="findings.html" style={{ color: 'var(--accent)' }}>findings page</a>. If the vocabulary above
-            (<code className="gc-code">D</code>, <code className="gc-code">E</code>, <code className="gc-code">G</code>,
-            "regime") is new, the <a href="concepts.html" style={{ color: 'var(--accent)' }}>concepts page</a> builds
-            it from scratch, one small piece at a time.
-          </p>
-        </section>
-
-        <section style={{ padding: '0.5rem 0 2rem', borderTop: '1px solid var(--rule)' }}>
-          <h2 style={{ fontFamily: "'Lora',serif", fontSize: 'clamp(1.3rem,4vw,1.6rem)', margin: '1.4em 0 0.6em', fontWeight: 600 }}>Why "commutator"?</h2>
-          <p style={{ fontSize: '1rem', color: 'var(--ink-soft)', margin: 0 }}>
-            The construction borrows its shape from quantum mechanics: a commutator asks whether two operations agree
-            on their order. Here the operations are differentiate (<code className="gc-code">D</code>) and evolve
-            (<code className="gc-code">E</code>) on a single cellular-automaton rule, computed over GF(2) instead of
-            the complex numbers. The clean result &mdash; <code className="gc-code">G</code> is constant exactly when
-            the rule is affine &mdash; is what justified asking the same question of <em>pairs</em> of distinct rules
-            instead of one rule against itself. That's where the five regimes, the full sweep, and the newer
-            instruments all come from.
+            Prefer to build something instead of reading about it? The{' '}
+            <a href="explorer.html" style={{ color: 'var(--accent)' }}>explorer</a> runs every instrument on this
+            site live in your browser, in 1D or 2D, and lets you wire their outputs into each other.
           </p>
         </section>
       </main>
