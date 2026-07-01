@@ -577,6 +577,91 @@ export function coupledTrajectory(stateA0, stateB0, tableA, tableB, steps) {
   return { a: fieldA, b: fieldB, diff };
 }
 
+// ---- nonuniform.py ----
+// A rule per cell: the rule field is an (n,)-array of rule numbers living
+// alongside the state -- same shape, same diagnostics. See the Python
+// module for the three regimes (frozen / read-from-state / gated transport)
+// and the radius-4 collapse warning on read-from-state.
+
+export function applyRuleField(state, ruleField) {
+  const n = state.length;
+  const out = new Uint8Array(n);
+  for (let i = 0; i < n; i++) {
+    const l = state[(i - 1 + n) % n];
+    const c = state[i];
+    const r = state[(i + 1) % n];
+    out[i] = (ruleField[i] >> (4 * l + 2 * c + r)) & 1;
+  }
+  return out;
+}
+
+// Cell i's rule number = the byte spelled by the 8 state bits S[i-3..i+4].
+// Composed with applyRuleField this is provably ONE uniform radius-4 CA --
+// kept so the collapse can be demonstrated, not because it escapes it.
+export function readRuleField(state) {
+  const n = state.length;
+  const out = new Array(n).fill(0);
+  for (let i = 0; i < n; i++) {
+    let rule = 0;
+    for (let k = 0; k < 8; k++) rule |= state[(i - 3 + k + 2 * n) % n] << k;
+    out[i] = rule;
+  }
+  return out;
+}
+
+// The honest rule-as-state construction: the rule field persists (its own
+// memory) and the state gates its transport -- a live cell copies its left
+// neighbor's rule over its own; a dead cell keeps its rule. Rules that
+// quiet their host cell are never displaced (the selection effect measured
+// in scripts/experiment_nonuniform.py).
+export function stepGatedDiffusion(state, ruleField) {
+  const n = state.length;
+  const newState = applyRuleField(state, ruleField);
+  const newField = new Array(n);
+  for (let i = 0; i < n; i++) {
+    newField[i] = state[i] === 1 ? ruleField[(i - 1 + n) % n] : ruleField[i];
+  }
+  return [newState, newField];
+}
+
+export function gatedDiffusionTrajectory(state0, ruleField0, steps) {
+  let s = state0.slice();
+  let f = ruleField0.slice();
+  const states = [], rules = [], distinct = [];
+  for (let t = 0; t < steps; t++) {
+    states.push(s);
+    rules.push(f);
+    distinct.push(new Set(f).size);
+    [s, f] = stepGatedDiffusion(s, f);
+  }
+  return { states, rules, distinct };
+}
+
+// Renders a byte-valued field (e.g. a rule-field trajectory, values 0-255)
+// one pixel per cell, mapping the byte through a two-hue gradient keyed to
+// the byte's popcount-ish magnitude. Rendering-only helper, no Python twin.
+export function renderByteFieldToCanvas(canvas, field, alphaByte = null) {
+  const steps = field.length;
+  const n = field[0].length;
+  canvas.width = n;
+  canvas.height = steps;
+  const ctx = canvas.getContext('2d');
+  const img = ctx.createImageData(n, steps);
+  for (let t = 0; t < steps; t++) {
+    for (let i = 0; i < n; i++) {
+      const v = field[t][i];
+      const o = (t * n + i) * 4;
+      // hash the byte to a stable color so each rule value reads as its
+      // own contiguous territory in the picture
+      img.data[o] = 40 + ((v * 97) % 200);
+      img.data[o + 1] = 60 + ((v * 57) % 160);
+      img.data[o + 2] = 90 + ((v * 31) % 140);
+      img.data[o + 3] = alphaByte === null ? 255 : alphaByte;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
 // ---- metaevolution.py ----
 
 export function populationCountGenerator(state) {

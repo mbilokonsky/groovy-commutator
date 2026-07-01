@@ -388,3 +388,67 @@ criterion (transfer entropy between layers, say) is untested. The
 selector decomposition also suggests an unexplored bridge back to
 meta-evolution: a lineage's generator could emit *pairs* of rules plus a
 coupling, instead of single rules.
+
+## 8. Rule-as-state: the second collapse, and selection showing up uninvited
+
+The last open instrument direction from section 6 — can the rule live in
+the same State -> State shape as the data? — is now implemented
+(`src/groovy/nonuniform.py`, 2026-07-01). The shape answer is easy and was
+always going to be: a per-cell rule field R is an (n,)-array whose 8
+bit-planes are literally state-shaped binary fields, so every diagnostic
+in the package (compressibility, D, absential) applies to the rule field
+unchanged. The interesting content is in what happened when R was given
+dynamics.
+
+**The second collapse theorem.** The maximally self-referential reading —
+each cell's rule number is the byte spelled by the 8 state bits around it,
+"instructions as patterns in the same substrate," read fresh each tick —
+is provably a single *uniform* CA of radius 4: S(t+1)[i] becomes a fixed
+function of the window S(t)[i-3..i+4]. Verified cell-by-cell against the
+explicit 256-entry window table. This is the same collapse that killed
+same-time inputs in pre-hoc composition (section 7), now one level up:
+**self-reference at a single time step is always just a bigger
+neighborhood.** What von Neumann's construction actually depends on — and
+what both collapses jointly point at — is *persistence*: the instruction
+tape is not recomputed from the machine's current surface each instant;
+it is carried. Memory is not an optimization, it is the thing that makes
+"rule" a separate ontological category from "state" at all.
+
+**State-gated rule transport, and the ecology it produces.** The honest
+construction: R persists; a live cell copies its left neighbor's rule
+over its own; a dead cell keeps its rule. (So the state gates transport
+through the rule medium, and rules move only where the state is active.)
+Two robust findings across 60 runs:
+
+- *Sustained polyculture.* Distinct-rule count falls 82 -> ~20 and then
+  holds flat for as long as we ran (never below 15). The rule field does
+  not re-converge to a uniform CA; heterogeneity is an attractor.
+- *Selection, unprompted.* Because only live cells get overwritten, a
+  rule that quiets its own host cell is immortal in place. Measured:
+  P(rule value survives | popcount) falls perfectly monotonically from
+  0.875 (popcount 0) to 0.000 (popcount 8), and the fraction of cells
+  carrying a restless rule (000->1) halves. But the population does NOT
+  converge to all-quiet — cell share peaks at popcount 2-3 — because
+  spreading requires the very liveness that gets a rule displaced.
+  Persistence selects for quiescence; propagation selects for activity;
+  the standoff is a stable mixed ecology. This is the smallest instance
+  I know of in this project of a *bona fide evolutionary trade-off*
+  emerging from a two-line update rule, and it rhymes with the
+  metaevolution finding (section 6): systems that generate their own
+  rules keep finding small stable platforms rather than runaway novelty.
+
+Adjacent literature, so this extends rather than rediscovers: non-uniform
+CA with evolved per-cell rules is Moshe Sipper's "cellular programming"
+program (*Evolution of Parallel Cellular Machines*, Springer 1997) — the
+difference here is that no external evolutionary algorithm is imposed;
+the selection pressure is endogenous, an artifact of how state gates rule
+transport. The quenched-heterogeneity finding (frozen random rule fields
+pin the state trajectory deep in the structured band, medians 0.11-0.16,
+where uniform rules sit at the extremes) is consistent with what
+disordered-media intuition would predict, and gives the project a third
+route to structure besides rule-pairing and pre-hoc coupling.
+
+Open, flagged as such: other transport schemes (rightward, symmetric,
+majority-vote), whether the ~20-rule plateau scales with n, and whether
+the surviving ecology's composition is reproducible across transport
+schemes or is an artifact of leftward copy specifically.

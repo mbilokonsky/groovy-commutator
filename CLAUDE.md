@@ -139,6 +139,39 @@ first, they carry the math. Full interpretive writeup and citations are in
      established: one sampling run, one (mutual, symmetric) topology, one
      lattice size.
 
+8. **Non-uniform CA (rule-as-state): implemented; second collapse
+   theorem; selection appears uninvited** (2026-07-01,
+   `src/groovy/nonuniform.py`, JS mirror in
+   `site/src/lib/groovy-engine.js`, `scripts/experiment_nonuniform.py` →
+   `results/nonuniform_rulefield.csv` + `site/src/data/nonuniform.json`).
+   Closes the "rule sharing state's dimensionality" open direction.
+   - Rule field R = (n,)-array of rule numbers; `apply_rule_field` steps
+     each cell by its own rule; `rule_field_bitplanes` exposes R as 8
+     state-shaped binary fields (all existing diagnostics apply).
+   - **Read-from-state collapses**: rule numbers re-read each step from
+     the 8 state bits around each cell (`read_rule_field`) make
+     S(t+1)[i] a fixed function of S(t)[i-3..i+4] — i.e. ONE uniform
+     radius-4 CA. Verified cell-by-cell against the explicit 256-entry
+     window LUT. Same moral as the prehoc collapse theorem: same-time
+     self-reference buys nothing; the rule field must have its own
+     memory.
+   - **State-gated rule transport** (`step_gated_diffusion`: live cell
+     copies left neighbor's rule, dead cell keeps its own; R persists):
+     60 seeds, n=100, 200 steps. Diversity falls 82 → 20 median distinct
+     rules and STABILIZES (never below 15) — sustained polyculture, not
+     monoculture. Selection gradient is perfectly monotone:
+     P(rule value survives | popcount) = 0.875 at popcount 0 falling to
+     0.000 at popcount 8; restless-rule (bit0=1) cell share halves
+     (0.498 → 0.189); yet cell share peaks at popcount 2-3, not 0 —
+     persistence needs quiescence (only live cells get overwritten) but
+     propagation needs live neighbors. Every heterogeneous condition
+     (frozen random field 0.16, mosaic 0.11, gated transport 0.14,
+     read-from-state 0.26) lands state-trajectory compressibility in the
+     structured band, vs uniform baselines at the extremes (rule 4:
+     0.03; rules 30/90: 1.00; rule 110: 0.82). Suggestive caveats: one
+     transport scheme (leftward copy), one lattice size; selection story
+     is measured correlation, not proven mechanism.
+
 ## New instruments (added 2026-06-30, from a separate chat-interface exploration)
 
 Four directions came out of a parallel conversation; two are implemented,
@@ -167,13 +200,13 @@ section 6 for the full writeup and citations.
   sampled at a few positions) and compare time-to-cycle / cycle diversity
   across them — see `metaevolution.py`'s module docstring.
 - **Non-uniform / heterogeneous CA** (rule space sharing state's
-  dimensionality, i.e. per-cell rules instead of one global rule) — open,
-  not implemented. Historically grounded (von Neumann's self-reproducing
-  automaton carried construction instructions as patterns in the same
-  substrate they acted on) but genuinely unresolved how to make `rule` a
-  first-class citizen of the same `(steps, n)`-shaped space as `state`
-  for the *elementary* (8-bit global rule) case used everywhere else in
-  this package.
+  dimensionality, i.e. per-cell rules instead of one global rule) — now
+  implemented, see established result 8 (`nonuniform.py`). The
+  historically-grounded framing (von Neumann's self-reproducing automaton
+  carried construction instructions as patterns in the same substrate
+  they acted on) turned out to have a sharp resolution: same-time
+  self-reference collapses to a bigger uniform CA; rule-as-state becomes
+  real exactly when the rule field carries its own memory.
 
 ## Conventions
 - Use `src/groovy/ca.py`'s vectorized `apply_rule` for anything beyond toy

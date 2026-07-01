@@ -4,6 +4,7 @@ import Watermark from './Watermark.jsx';
 import drainData from '../data/drain_predictor.json';
 import thresholdData from '../data/threshold_check.json';
 import prehocData from '../data/prehoc_coupling.json';
+import nonuniformData from '../data/nonuniform.json';
 
 const REGIME_COUNTS = [
   { key: 'structured', count: 14751 },
@@ -290,6 +291,122 @@ function PrehocHistogram() {
         compressibility of one coupled layer&#8217;s trajectory, 0 &rarr; 1.1 &middot; 1,500 random samples each
       </p>
     </>
+  );
+}
+
+// Median distinct-rule count over time under gated rule transport, with the
+// interquartile band -- the polyculture question, answered as a picture.
+function DiversityCurve() {
+  const { diversity_median, diversity_q25, diversity_q75, steps } = nonuniformData;
+  const W = 520, H = 180, padL = 36, padR = 10, padT = 10, padB = 30;
+  const w = W - padL - padR, h = H - padT - padB;
+  const maxY = 100;
+  const x = (t) => padL + (t / (steps - 1)) * w;
+  const y = (v) => padT + (1 - v / maxY) * h;
+  const path = (arr) => arr.map((v, t) => `${t ? 'L' : 'M'}${x(t).toFixed(1)},${y(v).toFixed(1)}`).join('');
+  const band = diversity_q75.map((v, t) => `${t ? 'L' : 'M'}${x(t).toFixed(1)},${y(v).toFixed(1)}`).join('')
+    + diversity_q25.slice().reverse().map((v, i) => `L${x(steps - 1 - i).toFixed(1)},${y(v).toFixed(1)}`).join('') + 'Z';
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', maxWidth: 520, display: 'block' }}>
+      <line x1={padL} y1={padT} x2={padL} y2={padT + h} stroke="#e4dac8" />
+      <line x1={padL} y1={padT + h} x2={padL + w} y2={padT + h} stroke="#e4dac8" />
+      {[0, 50, 100].map((v) => (
+        <text key={v} x={padL - 6} y={y(v) + 3} textAnchor="end" fontFamily="IBM Plex Mono, monospace" fontSize="10" fill="#6b6055">{v}</text>
+      ))}
+      {[0, 100, 200].map((v) => (
+        <text key={v} x={x(Math.min(v, steps - 1))} y={H - 8} textAnchor={v === 0 ? 'start' : 'middle'} fontFamily="IBM Plex Mono, monospace" fontSize="10" fill="#6b6055">{v}</text>
+      ))}
+      <path d={band} fill="var(--accent-soft)" />
+      <path d={path(diversity_median)} fill="none" stroke="var(--accent)" strokeWidth="2" />
+      <text x={padL + w - 4} y={y(diversity_median[diversity_median.length - 1]) - 8} textAnchor="end" fontFamily="IBM Plex Mono, monospace" fontSize="10" fill="var(--ink)">
+        distinct rules alive &middot; median + IQR
+      </text>
+    </svg>
+  );
+}
+
+// P(a rule value survives to the end | its popcount) -- the selection
+// gradient, as bars.
+function SurvivalByPopcount() {
+  const surv = nonuniformData.survival_by_popcount;
+  const W = 520, H = 170, padL = 36, padB = 30;
+  const w = W - padL - 10, h = H - padB - 10;
+  const bw = w / 9;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', maxWidth: 520, display: 'block' }}>
+      {surv.map((p, k) => {
+        const hh = (p || 0) * h;
+        return (
+          <g key={k}>
+            <rect x={padL + k * bw + 3} y={10 + h - hh} width={bw - 6} height={hh} fill="var(--accent)" rx="2" />
+            <text x={padL + k * bw + bw / 2} y={H - 16} textAnchor="middle" fontFamily="IBM Plex Mono, monospace" fontSize="10" fill="#6b6055">{k}</text>
+            <text x={padL + k * bw + bw / 2} y={10 + h - hh - 4} textAnchor="middle" fontFamily="IBM Plex Mono, monospace" fontSize="9" fill="var(--ink)">{p === null ? '' : p.toFixed(2)}</text>
+          </g>
+        );
+      })}
+      <line x1={padL} y1={10 + h} x2={padL + w} y2={10 + h} stroke="#e4dac8" />
+      <text x={padL + w / 2} y={H - 3} textAnchor="middle" fontFamily="IBM Plex Mono, monospace" fontSize="10" fill="#6b6055">
+        popcount of the rule (how many of its 8 outputs are 1)
+      </text>
+      <text x={8} y={12} fontFamily="IBM Plex Mono, monospace" fontSize="10" fill="#6b6055">P(survive)</text>
+    </svg>
+  );
+}
+
+// Live demo of state-gated rule transport: state trajectory next to the
+// rule field's own trajectory (each rule value hashed to a color, so
+// territories are visible), plus the live distinct-rule count.
+function NonuniformDemo() {
+  const [seed, setSeed] = useState(1);
+  const [status, setStatus] = useState('computing…');
+  const engineRef = useRef(null);
+  const stateRef = useRef(null);
+  const rulesRef = useRef(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    import('../lib/groovy-engine.js').then((engine) => {
+      if (cancelled) return;
+      engineRef.current = engine;
+      draw();
+    });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => { draw(); });
+
+  function draw() {
+    const engine = engineRef.current;
+    if (!engine) return;
+    const { randomState, mulberry32, gatedDiffusionTrajectory, renderFieldToCanvas, renderByteFieldToCanvas } = engine;
+    const n = 100, steps = 100;
+    const s0 = randomState(n, seed);
+    const rng = mulberry32(seed + 5);
+    const rf0 = Array.from({ length: n }, () => Math.floor(rng() * 256));
+    const res = gatedDiffusionTrajectory(s0, rf0, steps);
+    if (stateRef.current) renderFieldToCanvas(stateRef.current, res.states, '#2a2420', '#f1ead9');
+    if (rulesRef.current) renderByteFieldToCanvas(rulesRef.current, res.rules);
+    setStatus(`distinct rules alive: ${res.distinct[0]} at step 0 → ${res.distinct[steps - 1]} at step ${steps}.`);
+  }
+
+  return (
+    <div>
+      <button onClick={() => setSeed((s) => s + 1)} className="gc-mono"
+        style={{ fontWeight: 700, fontSize: '0.76rem', padding: '0.4rem 0.8rem', borderRadius: 7, border: '1px solid var(--accent)', background: 'var(--accent)', color: '#fff', cursor: 'pointer', marginBottom: '0.9rem' }}>
+        reroll state + rule field ↻
+      </button>
+      <div style={{ display: 'flex', gap: '0.9rem', flexWrap: 'wrap' }}>
+        {[[stateRef, 'the state, evolving under its local rules'],
+          [rulesRef, 'the rule field itself — one color per rule value']].map(([ref, label]) => (
+          <div key={label} style={{ width: 190 }}>
+            <canvas className="gc-field" ref={ref} style={{ width: 190, height: 190 }}></canvas>
+            <div className="gc-mono" style={{ fontSize: '0.66rem', color: 'var(--ink-soft)', marginTop: 3 }}>{label}</div>
+          </div>
+        ))}
+      </div>
+      <p className="gc-mono" style={{ fontSize: '0.74rem', color: 'var(--ink-soft)', margin: '0.7rem 0 0' }}>{status}</p>
+    </div>
   );
 }
 
@@ -752,14 +869,59 @@ export default function Questions() {
         <QuestionCard
           id="rule-as-state"
           q="Could a rule live in the same State &rarr; State shape as the data it acts on?"
-          status="open" statusLabel="Open — not implemented"
+          status="suggestive" statusLabel="Suggestive — now implemented"
         >
-          <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', margin: 0 }}>
-            Every instrument in this project maps State &rarr; State. A rule, by contrast, is a fixed number sitting
-            outside that space. Non-uniform cellular automata &mdash; one rule per cell instead of one shared global
-            rule &mdash; would give the rule-field the same shape as the state itself, and trace back to von
-            Neumann's self-reproducing automaton (construction instructions stored as patterns in the same substrate
-            they act on). Not implemented anywhere in this project yet.
+          <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', margin: '0 0 1rem' }}>
+            Every instrument in this project maps State &rarr; State; the rule sat outside that space as a fixed
+            8-bit number. Non-uniform cellular automata &mdash; one rule <em>per cell</em> &mdash; put it inside
+            (<code className="gc-code">src/groovy/nonuniform.py</code>): the rule field is an array the same shape
+            as the state, its 8 bit-planes are literally state-shaped binary fields, and every diagnostic on this
+            site applies to it unchanged. This traces back to von Neumann's self-reproducing automaton, where
+            construction instructions were patterns in the same substrate they acted on.
+          </p>
+          <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', margin: '0 0 1rem' }}>
+            <strong style={{ color: 'var(--ink)' }}>The tempting version collapses, again.</strong> The most
+            self-referential reading &mdash; each cell's rule number is the byte spelled by the 8 state bits around
+            it, &ldquo;the state writes its own rules&rdquo; &mdash; is provably just <em>one</em> ordinary uniform
+            CA with a radius-4 neighborhood, by the same argument as the pre-hoc collapse theorem above (verified
+            cell-by-cell against the explicit 256-entry window table). Same moral as before: self-reference at the
+            same time step buys nothing; the rule field only becomes a genuine second citizen when it <em>persists</em>
+            &mdash; when it has memory of its own.
+          </p>
+          <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', margin: '0 0 1rem' }}>
+            So the honest construction gives it memory: the rule field persists, and the state gates its transport
+            &mdash; a live cell copies its left neighbor's rule over its own; a dead cell keeps its rule. Rules
+            become material flowing through the very medium they animate. Live, right now:
+          </p>
+          <NonuniformDemo />
+          <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', margin: '1.1rem 0 1rem' }}>
+            Two measured findings from {nonuniformData.seeds} runs ({nonuniformData.steps} steps, n={nonuniformData.n}).
+            First: the rule population never collapses to a monoculture &mdash; diversity falls fast, then holds:
+          </p>
+          <DiversityCurve />
+          <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', margin: '1.1rem 0 1rem' }}>
+            Median {nonuniformData.distinct_t0_median} distinct rules at the start &rarr;{' '}
+            {nonuniformData.distinct_final_median} at step {nonuniformData.steps} (never below{' '}
+            {nonuniformData.distinct_final_min} in any run) &mdash; a stable polyculture, not a return to uniform
+            CA. Second: which rules survive is not random. Transport only overwrites a cell's rule where that cell
+            is <em>alive</em> &mdash; so a rule that quiets its own host cell can never be displaced. That's a
+            selection pressure, and it shows up as a perfectly monotone gradient:
+          </p>
+          <SurvivalByPopcount />
+          <p style={{ fontSize: '0.88rem', color: 'var(--ink-soft)', margin: '1.1rem 0 0' }}>
+            <strong style={{ color: 'var(--ink)' }}>What this says:</strong> the moment the rule becomes
+            state-shaped <em>with memory</em>, evolution shows up uninvited. All-quiet rules survive{' '}
+            {Math.round(nonuniformData.survival_by_popcount[0] / Math.max(nonuniformData.survival_by_popcount[7], 0.001) / 10) * 10}&times;
+            more reliably than all-restless ones, and the fraction of cells whose rule is restless (turns 000 into 1)
+            drops from {nonuniformData.restless_frac_t0} to {nonuniformData.restless_frac_final} &mdash; yet the
+            population settles at moderate quietness (cell share peaks at popcount 2&ndash;3), because
+            <em> spreading</em> requires the very liveness that gets a rule overwritten. Persistence wants
+            quiescence; propagation wants activity; the standoff is a polyculture. As for the state itself:
+            every heterogeneous condition tested (quenched random field, mosaic, gated transport) lands its
+            trajectory in the structured band (medians 0.11&ndash;0.16) &mdash; heterogeneity alone pins structure
+            that no single uniform rule in the pair-sweep vocabulary produces. Suggestive, not established: one
+            transport scheme (leftward copy), one lattice size, and the selection story is a measured correlation,
+            not a proven mechanism.
           </p>
         </QuestionCard>
 
