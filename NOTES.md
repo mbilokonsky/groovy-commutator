@@ -310,17 +310,25 @@ control sits exactly where it should, at the floor. Good first empirical
 anchor for "representational capacity" as the thing that's actually being
 selected on.
 
-Scale-up (2026-07-01, 600 lineages: 40 seeds x 3 starting rules per
-generator) kept the direction and killed the gradient story: the
-zero-information control is theorem-pinned at exactly 2.0 generations
-(zero variance), every informative generator searches 3-5x longer with
-separated CIs — but population count ties the 8-bit derivative sample at
-the top, so "more bits in the generator → longer search" is wrong beyond
-the zero/nonzero split. Whatever "representational capacity" is being
-selected on, it is not naive bit-count. Also: ~5% of population-count
-lineages exhausted the 40-generation budget without cycling — the first
-observed candidates for open-ended (non-locking) lineages in this system,
-unresolved because budget-bound.
+Scale-up (2026-07-01, 40 independent initial states per generator) kept
+the direction and killed the gradient story: the zero-information control
+is theorem-pinned at exactly 2.0 generations (zero variance), every
+informative generator searches 3-5x longer with separated CIs — but
+population count ties the 8-bit derivative sample at the top, so "more
+bits in the generator → longer search" is wrong beyond the zero/nonzero
+split. Whatever "representational capacity" is being selected on, it is
+not naive bit-count.
+
+Two methodology corrections from this scale-up, worth remembering:
+starting-rule replication is pseudo-replication for state-only generators
+(everything after the first handoff depends only on the initial state);
+and the period-<=3 cycle detector misread period-4/5 cycles as
+open-endedness. The seductive "5% of lineages wander forever" finding
+died on inspection: seed 9's lineage cycles 23->41->19->43 eternally, at
+period 4, one past the detector's horizon. Chased to 400 generations:
+every lineage locks, all within ~27 generations. Open-endedness in this
+system has so far always turned out to be an artifact of a too-small
+window — a lesson that generalizes.
 
 The pair-lineage lift (2026-07-01, experiment_metaevolution_pairs.py):
 running the same lineage protocol over coupled two-layer pre-hoc systems

@@ -3,17 +3,27 @@
 The original comparison (scripts/build_findings_assets.py, 8 seeds per
 generator, one starting rule) found that richer/more-informative generators
 search longer before locking into a rule-space cycle, with the
-affine-degenerate G(.,90) control at the floor. Labeled suggestive on the
-site. This scales it 15x: same five generators, 40 seeds each, three
-starting rules (90, 30, 110), with bootstrap CIs on the mean
-generations-to-cycle, so the questions page chart can carry error bars and
-an honest robustness statement.
+affine-degenerate G(.,90) control at the floor. This scales it to 40 seeds
+per generator with bootstrap CIs.
+
+Two methodology lessons are baked in, both learned the hard way:
+
+- ONE starting rule, not three. For state-only generators (all of these),
+  the child rule at generation 0 is generator(state0) regardless of rule0,
+  and everything after that depends only on state0 -- so "replicating"
+  across starting rules is pseudo-replication that silently narrows CIs.
+  The real replication axis is the initial state.
+
+- cycle_window=12, catching periods up to 6. The default window (6, i.e.
+  periods <= 3) misclassified period-4/5 cycles as "never locked": the
+  supposed 5% of open-ended popcount lineages turned out to be locked in
+  cycles the detector couldn't see (seed 9: 23->41->19->43 forever).
+  With the wider window, lock-in is 100% across the board.
 
 Output:
     results/metaevolution_scale.csv     -- per-lineage outcomes
-    site/src/data/metaevolution.json    -- per-generator means + CIs,
-                                           lock-in rates, per-start-rule
-                                           breakdown
+    site/src/data/metaevolution.json    -- per-generator means + CIs +
+                                           lock-in rates
 """
 from __future__ import annotations
 
@@ -33,10 +43,11 @@ from groovy.metrics import absential_field  # noqa: E402
 from groovy.metaevolution import lineage, population_count_generator  # noqa: E402
 
 N = 64
-MAX_GENERATIONS = 40
+MAX_GENERATIONS = 60
 STEPS = 80
 SEEDS = 40
-START_RULES = (90, 30, 110)
+START_RULES = (90,)
+CYCLE_WINDOW = 12
 
 
 def absential_count_generator(state):
@@ -81,7 +92,8 @@ def main() -> None:
                 rng = np.random.default_rng(seed)
                 state0 = random_state(N, rng)
                 hist = lineage(state0, rule0, generator=gen_fn,
-                               max_generations=MAX_GENERATIONS, steps=STEPS)
+                               max_generations=MAX_GENERATIONS, steps=STEPS,
+                               cycle_window=CYCLE_WINDOW)
                 locked = "cycle_period" in hist[-1]
                 rows.append(dict(generator=gen_name, rule0=rule0, seed=seed,
                                  locked_in=locked,
@@ -98,19 +110,17 @@ def main() -> None:
         locked = grp[grp.locked_in]
         vals = locked["generations"].to_numpy(dtype=float)
         lo, hi = bootstrap_ci(vals)
-        per_rule = {str(r): round(float(locked[locked.rule0 == r]["generations"].mean()), 2)
-                    for r in START_RULES}
         out.append(dict(
             generator=gen_name,
             lockin_rate=round(float(grp.locked_in.mean()), 4),
             mean_generations=round(float(vals.mean()), 2),
             ci_low=round(lo, 2), ci_high=round(hi, 2),
-            per_start_rule=per_rule,
             n_lineages=int(len(grp)),
         ))
 
     site_json = dict(n=N, max_generations=MAX_GENERATIONS, steps=STEPS,
                      seeds=SEEDS, start_rules=list(START_RULES),
+                     cycle_window=CYCLE_WINDOW,
                      generators=out)
     (ROOT / "site" / "src" / "data" / "metaevolution.json").write_text(
         json.dumps(site_json, indent=1))
@@ -119,9 +129,6 @@ def main() -> None:
     for g in out:
         print(f"{g['generator']:28s} {g['lockin_rate']:8.2%} {g['mean_generations']:10.2f} "
               f"[{g['ci_low']:5.2f}, {g['ci_high']:5.2f}]")
-    print("\nper start rule (mean gens):")
-    for g in out:
-        print(f"  {g['generator']:28s} {g['per_start_rule']}")
 
 
 if __name__ == "__main__":

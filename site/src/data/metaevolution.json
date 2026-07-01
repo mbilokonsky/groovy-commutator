@@ -1,39 +1,28 @@
 {
  "n": 64,
- "max_generations": 40,
+ "max_generations": 60,
  "steps": 80,
  "seeds": 40,
  "start_rules": [
-  90,
-  30,
-  110
+  90
  ],
+ "cycle_window": 12,
  "generators": [
   {
    "generator": "population_count",
-   "lockin_rate": 0.95,
-   "mean_generations": 10.73,
-   "ci_low": 9.85,
-   "ci_high": 11.68,
-   "per_start_rule": {
-    "90": 10.97,
-    "30": 10.24,
-    "110": 10.97
-   },
-   "n_lineages": 120
+   "lockin_rate": 1.0,
+   "mean_generations": 11.22,
+   "ci_low": 9.8,
+   "ci_high": 12.75,
+   "n_lineages": 40
   },
   {
    "generator": "absential_count",
    "lockin_rate": 1.0,
-   "mean_generations": 7.08,
-   "ci_low": 6.46,
-   "ci_high": 7.76,
-   "per_start_rule": {
-    "90": 7.15,
-    "30": 6.92,
-    "110": 7.15
-   },
-   "n_lineages": 120
+   "mean_generations": 7.15,
+   "ci_low": 6.08,
+   "ci_high": 8.38,
+   "n_lineages": 40
   },
   {
    "generator": "g90_popcount (degenerate)",
@@ -41,38 +30,23 @@
    "mean_generations": 2.0,
    "ci_low": 2.0,
    "ci_high": 2.0,
-   "per_start_rule": {
-    "90": 2.0,
-    "30": 2.0,
-    "110": 2.0
-   },
-   "n_lineages": 120
+   "n_lineages": 40
   },
   {
    "generator": "g30_popcount",
-   "lockin_rate": 0.975,
-   "mean_generations": 5.86,
-   "ci_low": 5.33,
-   "ci_high": 6.39,
-   "per_start_rule": {
-    "90": 5.92,
-    "30": 5.74,
-    "110": 5.92
-   },
-   "n_lineages": 120
+   "lockin_rate": 1.0,
+   "mean_generations": 6.1,
+   "ci_low": 5.2,
+   "ci_high": 7.03,
+   "n_lineages": 40
   },
   {
    "generator": "d90_sample",
    "lockin_rate": 1.0,
-   "mean_generations": 10.09,
-   "ci_low": 8.88,
-   "ci_high": 11.34,
-   "per_start_rule": {
-    "90": 9.97,
-    "30": 10.15,
-    "110": 10.15
-   },
-   "n_lineages": 120
+   "mean_generations": 9.97,
+   "ci_low": 8.0,
+   "ci_high": 12.3,
+   "n_lineages": 40
   }
  ]
 }

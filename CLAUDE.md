@@ -263,17 +263,23 @@ section 6 for the full writeup and citations.
   The generator comparison is now run at scale (2026-07-01,
   `scripts/experiment_metaevolution_scale.py` →
   `results/metaevolution_scale.csv` + `site/src/data/metaevolution.json`:
-  5 generators × 40 seeds × 3 starting rules = 600 lineages).
+  5 generators × 40 independent initial states, cycle_window=12).
   Established: the affine-degenerate control G(·,90) locks in at exactly
   2.0 generations with zero variance (theorem-pinned floor); every
-  information-carrying generator searches 3-5× longer with cleanly
-  separated bootstrap CIs (g30 5.9 < absential 7.1 < d90_sample 10.1 ≈
-  population_count 10.7); ordering stable across starting rules 90/30/110.
+  information-carrying generator searches 3-5× longer with separated
+  bootstrap CIs (g30 6.1 < absential 7.2 < d90_sample 10.0 ≈
+  population_count 11.2); lock-in 100% across the board.
   CORRECTION to the old 8-seed reading: "richer generator → longer
   search" does NOT hold beyond the zero/nonzero information split —
-  population count ties the 8-bit derivative sample at the top. Lock-in
-  is 95-100%; the ~5% of population_count lineages that ran the full
-  40-generation budget without cycling are budget-bound unknowns.
+  population count ties the 8-bit derivative sample at the top.
+  Two methodology traps found and fixed, recorded in the script
+  docstring: (a) replicating across STARTING RULES is pseudo-replication
+  (state-only generators make everything after the first handoff depend
+  only on the initial state); (b) the default cycle_window=6 detector
+  (periods ≤ 3) misread period-4/5 cycles as "never locked" — the
+  supposed ~5% open-ended lineages were locked all along (seed 9:
+  23→41→19→43 forever), confirmed by chasing them to 400 generations.
+  Every locking lineage locks within ~27 generations.
 - **Non-uniform / heterogeneous CA** (rule space sharing state's
   dimensionality, i.e. per-cell rules instead of one global rule) — now
   implemented, see established result 8 (`nonuniform.py`). The

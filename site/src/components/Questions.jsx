@@ -735,10 +735,12 @@ export default function Questions() {
           <p style={{ fontSize: '0.88rem', color: 'var(--ink-soft)', margin: '0.6rem 0 0' }}>
             <strong style={{ color: 'var(--ink)' }}>What this says:</strong> lineages reliably wander through a few
             structured or noisy handoffs, then lock into a small repeating cycle in rule space itself &mdash; a found
-            stable platform, not a runaway tower of ever-new rules. At scale (600 lineages, next question) 95&ndash;100%
-            of runs lock in within the 40-generation budget; the interesting residue is the handful of
-            population-count lineages that ran the whole budget without ever cycling &mdash; whether they lock in
-            eventually or wander forever is budget-bound and genuinely unknown.
+            stable platform, not a runaway tower of ever-new rules. At scale (next question), <em>every</em> lineage
+            locks in. An earlier version of this page reported a tantalizing ~5% that seemed to wander forever;
+            chasing them with a 10&times; budget revealed they'd been locked all along &mdash; in period-4 and
+            period-5 cycles (e.g. rules 23&rarr;41&rarr;19&rarr;43, forever) that a detector watching only for
+            periods &le; 3 couldn't see. Every lineage that locks does so within ~27 generations; open-endedness has
+            not survived contact with a better detector yet.
           </p>
         </QuestionCard>
 
@@ -748,22 +750,25 @@ export default function Questions() {
           status="established" statusLabel="Established (direction)"
         >
           <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', margin: '0 0 1rem' }}>
-            Mean generations before locking into a cycle &mdash; now {metaevolutionData.generators[0].n_lineages}{' '}
-            lineages per generator ({metaevolutionData.seeds} seeds &times; {metaevolutionData.start_rules.length}{' '}
-            starting rules; whiskers are bootstrap 95% CIs; lock-in rates 95&ndash;100%):
+            Mean generations before locking into a cycle &mdash; {metaevolutionData.seeds} independent initial
+            states per generator, whiskers are bootstrap 95% CIs, and with a detector that catches periods up to 6,
+            lock-in is 100% across the board:
           </p>
           <GeneratorBarChart />
           <p style={{ fontSize: '0.88rem', color: 'var(--ink-soft)', margin: '1rem 0 0' }}>
             <strong style={{ color: 'var(--ink)' }}>What this says:</strong> yes, robustly &mdash; and one early
             reading didn't survive the scale-up. The information-free control
             (<code className="gc-code">G(&middot;,90)</code>, provably all-zero for every state by the affine
-            theorem, so it always emits rule 0) sits at <em>exactly</em> 2.0 generations with zero variance across
-            all 120 lineages &mdash; a floor pinned by a theorem. Every information-carrying generator searches
-            3&ndash;5&times; longer, with cleanly separated CIs, and the whole ordering is stable across all three
-            starting rules. But the earlier suggestion that the &ldquo;richest&rdquo; generator searches longest
+            theorem, so it always emits rule 0) sits at <em>exactly</em> 2.0 generations with zero variance &mdash;
+            a floor pinned by a theorem. Every information-carrying generator searches 3&ndash;5&times; longer, with
+            separated CIs. But the earlier suggestion that the &ldquo;richest&rdquo; generator searches longest
             didn't hold: at scale, humble population count statistically ties the 8-bit derivative sample at the
             top. Carrying <em>some</em> state information matters enormously; naive bit-count of the generator does
-            not predict search length beyond that. One lattice size and one budget, still.
+            not predict search length beyond that. (Two methodology corrections along the way, recorded in the
+            experiment script: replicating across <em>starting rules</em> is pseudo-replication, because a
+            state-only generator makes everything after the first handoff depend on the initial state alone; and
+            the cycle detector needed to watch for periods beyond 3 &mdash; see the previous question.) One lattice
+            size and one budget, still.
           </p>
         </QuestionCard>
 
