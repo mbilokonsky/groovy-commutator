@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Watermark from './Watermark.jsx';
+import { readSeedFromLocation } from '../lib/exploreSeed.js';
 
 const TYPE_COLORS = {
   source: 'var(--c-source)', transform: 'var(--c-transform)',
@@ -42,6 +43,24 @@ function centerSeedIC(n) {
   return arr;
 }
 
+// Pre-seeded cards handed in via ?seed=... (see lib/exploreSeed.js) --
+// lets a fixed worked example on Concepts drop straight into the real,
+// editable tool already loaded with equivalent cards. Falls back to the
+// same single default source card as always when there's no seed.
+function buildInitialCards() {
+  const seed = readSeedFromLocation();
+  if (seed) {
+    const configs = {};
+    seed.cards.forEach((c) => { configs[c.id] = { ...c, color: c.color || CANVAS_TYPE_COLORS[c.type] }; });
+    return { configs, order: seed.cards.map((c) => c.id), mode: seed.mode || '1d' };
+  }
+  return {
+    configs: { 1: { id: 1, type: 'source', dim: '1d', rule: 110, ic: centerSeedIC(N), steps: DEFAULT_STEPS, color: CARD_COLORS[0].css } },
+    order: [1],
+    mode: '1d',
+  };
+}
+
 const NAV_PAGES = [
   { href: 'index.html', label: 'Home' },
   { href: 'concepts.html', label: 'Concepts' },
@@ -54,21 +73,23 @@ export default function Explorer() {
   // serializable/diffable in a way React needs to re-render on; state just
   // tracks the thin "what's selected / what's the UI doing" layer plus a
   // version counter that forces a re-render whenever the ref data changes.
-  const cardConfigsRef = useRef({
-    1: { id: 1, type: 'source', dim: '1d', rule: 110, ic: centerSeedIC(N), steps: DEFAULT_STEPS, color: CARD_COLORS[0].css },
-  });
+  const initialRef = useRef(null);
+  if (initialRef.current === null) initialRef.current = buildInitialCards();
+  const initial = initialRef.current;
+
+  const cardConfigsRef = useRef(initial.configs);
   const fieldsRef = useRef({});
-  const canvasRefsRef = useRef({ 1: { current: null } });
+  const canvasRefsRef = useRef(Object.fromEntries(initial.order.map((id) => [id, { current: null }])));
   const engineRef = useRef(null);
   const playTimerRef = useRef(null);
 
   const [engineReady, setEngineReady] = useState(false);
   const [version, setVersion] = useState(0);
-  const [mode, setModeState] = useState('1d');
+  const [mode, setModeState] = useState(initial.mode);
   const [gen2D, setGen2D] = useState(0);
   const [playing2D, setPlaying2D] = useState(false);
-  const [order, setOrder] = useState([1]);
-  const [selected, setSelected] = useState({ 1: true });
+  const [order, setOrder] = useState(initial.order);
+  const [selected, setSelected] = useState(() => Object.fromEntries(initial.order.map((id) => [id, true])));
   const [layoutMode, setLayoutMode] = useState('side');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState(null);
@@ -238,10 +259,13 @@ export default function Explorer() {
     import('../lib/groovy-engine.js').then((engine) => {
       engineRef.current = engine;
       setEngineReady(true);
-      recomputeCard(1);
+      // sources/couplings first (no upstream deps), then anything that
+      // reads from them -- correct for the depth-1 chains real seeds use.
+      const ids = initial.order;
+      const sources = ids.filter((id) => ['source', 'coupling'].includes(cardConfigs[id].type));
+      const rest = ids.filter((id) => !['source', 'coupling'].includes(cardConfigs[id].type));
+      [...sources, ...rest].forEach((id) => { fields[id] = computeField(id); });
       touch();
-      const c1 = cardConfigs[1];
-      c1.ic2d = engine.randomGrid2D(GRID_N, GRID_N);
     });
     return () => { if (playTimerRef.current) clearInterval(playTimerRef.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -472,7 +496,7 @@ export default function Explorer() {
   const opHelperText = {
     raw: 'Passes the input through unchanged — useful for comparing "before" and "after" side by side.',
     d: 'S ⊕ φ(S) of the input, under the rule below.' + (ruleAutoFilled ? ' Auto-filled from C' + modalFrom + ' — D of a D with the same rule is exactly the second derivative.' : ' Change it to reinterpret the input under a different rule.'),
-    g: 'The single-rule commutator of the input, under the rule below.',
+    g: 'The Groovy Commutator of the input, under the rule below.',
     absential: 'Off-but-adjacent cells of the input, at each step. No rule needed.',
     secondorder: "The input reinterpreted via the chosen rule's reversible recurrence, seeded from its first two rows.",
   }[modalOp];

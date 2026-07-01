@@ -2,6 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Nav from './Nav.jsx';
 import Watermark from './Watermark.jsx';
 import { AmbientCA2D } from './AmbientCA.jsx';
+import InstrumentViewer from './InstrumentViewer.jsx';
+import { buildSeedUrl } from '../lib/exploreSeed.js';
+
+// Explorer's own dark-theme card palette (not shared with this light-theme
+// page) -- used only when building ?seed= links, so cards read correctly
+// once they land there.
+const EXPLORE_COLORS = { cream: 'oklch(0.94 0.02 90)', teal: 'oklch(0.72 0.1 195)', amber: 'oklch(0.72 0.14 75)', purple: 'oklch(0.7 0.13 300)', red: 'oklch(0.66 0.15 22)' };
 
 function defaultInitState(n) {
   const arr = new Array(n).fill(0);
@@ -49,7 +56,7 @@ const TOC = [
   ['#calculus', 'Boolean calculus'],
   ['#state', 'State → State'],
   ['#secondderivative', 'Second derivative'],
-  ['#commutator', 'The commutator G'],
+  ['#commutator', 'The Groovy Commutator G'],
   ['#absential', 'Absential cells'],
   ['#secondorder', 'Reversible memory'],
   ['#coupling', 'Coupling rules'],
@@ -124,17 +131,13 @@ export default function Concepts() {
   const [breakoutLeft, setBreakoutLeft] = useState(0);
   const [viewportWidth, setViewportWidth] = useState(0);
   const [engineReady, setEngineReady] = useState(false);
+  const [computed, setComputed] = useState(null);
 
   const engineRef = useRef(null);
   const sentinelRef = useRef(null);
   const caRef = useRef(null);
   const caRef2 = useRef(null);
   const dRef = useRef(null);
-  const caRef3 = useRef(null);
-  const dRef2 = useRef(null);
-  const d2Ref = useRef(null);
-  const gRef = useRef(null);
-  const absentialRef = useRef(null);
   const secondOrderRef = useRef(null);
   const pairRef = useRef(null);
 
@@ -173,20 +176,14 @@ export default function Concepts() {
     const raw = evolveTrajectory(s0, rule, STEPS);
     if (caRef.current) renderFieldToCanvas(caRef.current, raw, ON_COLOR, '#f1ead9');
     if (caRef2.current) renderFieldToCanvas(caRef2.current, raw, ON_COLOR, '#f1ead9');
-    if (caRef3.current) renderFieldToCanvas(caRef3.current, raw, ON_COLOR, '#f1ead9');
 
     const dField = dTrajectory(s0, rule, STEPS);
     if (dRef.current) renderFieldToCanvas(dRef.current, dField, ACCENT, '#f1ead9');
-    if (dRef2.current) renderFieldToCanvas(dRef2.current, dField, ACCENT, '#f1ead9');
 
     const d2Field = d2Trajectory(s0, rule, STEPS);
-    if (d2Ref.current) renderFieldToCanvas(d2Ref.current, d2Field, 'oklch(0.55 0.14 30)', '#f1ead9');
-
     const gField = gTrajectory(s0, rule, STEPS);
-    if (gRef.current) renderFieldToCanvas(gRef.current, gField, 'oklch(0.5 0.13 300)', '#f1ead9');
-
     const absField = absentialTrajectory(s0, rule, STEPS);
-    if (absentialRef.current) renderFieldToCanvas(absentialRef.current, absField, 'oklch(0.6 0.14 75)', '#f1ead9');
+    setComputed({ raw, d: dField, d2: d2Field, g: gField, absential: absField });
 
     const soTraj = runSecondOrder(s0, s0, rule, STEPS);
     if (secondOrderRef.current) renderFieldToCanvas(secondOrderRef.current, soTraj, 'oklch(0.5 0.12 230)', '#f1ead9');
@@ -405,9 +402,9 @@ export default function Concepts() {
               <strong>XOR</strong> (&oplus;) &mdash; it's 1 exactly where two bits disagree. Click the two bits below:
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', flexWrap: 'wrap' }}>
-              <button onClick={() => setXorA(xorA ? 0 : 1)} className="gc-mono" style={{ fontWeight: 800, fontSize: '1.3rem', width: 54, height: 54, borderRadius: 8, border: '1px solid var(--accent)', background: xorA ? ON_COLOR : OFF_COLOR, cursor: 'pointer' }}></button>
+              <button onClick={() => setXorA(xorA ? 0 : 1)} className="gc-mono" style={{ fontWeight: 800, fontSize: '1.3rem', width: 54, height: 54, borderRadius: 8, border: '1px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: xorA ? ON_COLOR : OFF_COLOR, color: xorA ? '#faf7f0' : '#2a2420', cursor: 'pointer' }}>{xorA}</button>
               <span className="gc-mono" style={{ fontSize: '1.1rem', color: 'var(--ink-soft)' }}>&oplus;</span>
-              <button onClick={() => setXorB(xorB ? 0 : 1)} className="gc-mono" style={{ fontWeight: 800, fontSize: '1.3rem', width: 54, height: 54, borderRadius: 8, border: '1px solid var(--accent)', background: xorB ? ON_COLOR : OFF_COLOR, cursor: 'pointer' }}></button>
+              <button onClick={() => setXorB(xorB ? 0 : 1)} className="gc-mono" style={{ fontWeight: 800, fontSize: '1.3rem', width: 54, height: 54, borderRadius: 8, border: '1px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: xorB ? ON_COLOR : OFF_COLOR, color: xorB ? '#faf7f0' : '#2a2420', cursor: 'pointer' }}>{xorB}</button>
               <span className="gc-mono" style={{ fontSize: '1.1rem', color: 'var(--ink-soft)' }}>=</span>
               <div className="gc-mono" style={{ fontWeight: 800, fontSize: '1.3rem', width: 54, height: 54, borderRadius: 8, border: '1px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: xorResult ? ON_COLOR : OFF_COLOR, color: xorResult ? '#faf7f0' : '#2a2420' }}>{xorResult}</div>
             </div>
@@ -492,25 +489,30 @@ export default function Concepts() {
               The obvious next move once <code className="gc-code">D</code> exists: apply it to its own output,
               under the same rule. Raw state, D(S), and D&sup2;(S), for Rule {rule}:
             </p>
-            <div className="gc-lens-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1rem' }}>
-              <div>
-                <canvas className="gc-field" ref={caRef3} style={{ width: '100%', height: 'auto', aspectRatio: '1' }}></canvas>
-                <div className="gc-mono" style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', marginTop: '0.3rem' }}>raw state</div>
-              </div>
-              <div>
-                <canvas className="gc-field" ref={dRef2} style={{ width: '100%', height: 'auto', aspectRatio: '1' }}></canvas>
-                <div className="gc-mono" style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', marginTop: '0.3rem' }}>D(S)</div>
-              </div>
-              <div>
-                <canvas className="gc-field" ref={d2Ref} style={{ width: '100%', height: 'auto', aspectRatio: '1' }}></canvas>
-                <div className="gc-mono" style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', marginTop: '0.3rem' }}>D&sup2;(S)</div>
-              </div>
-            </div>
+            <InstrumentViewer
+              items={[
+                { label: 'raw state', field: computed && computed.raw, color: ON_COLOR },
+                { label: 'D(S)', field: computed && computed.d, color: ACCENT },
+                { label: 'D²(S)', field: computed && computed.d2, color: 'oklch(0.55 0.14 30)' },
+              ]}
+              exploreHref={buildSeedUrl([
+                { id: 1, type: 'source', dim: '1d', rule, ic: initState, steps: STEPS, color: EXPLORE_COLORS.cream },
+                { id: 2, type: 'transform', dim: '1d', from: 1, op: 'd', rule, color: EXPLORE_COLORS.teal },
+                { id: 3, type: 'transform', dim: '1d', from: 2, op: 'd', rule, color: EXPLORE_COLORS.red },
+              ])}
+            />
+            <p style={{ ...pBody, marginTop: '1.1rem' }}>
+              Read the teal panel as "which cells are about to change" &mdash; it's <code className="gc-code">D(S)</code>,
+              the difference between the raw state and what the rule turns it into next. The red panel is the same
+              question asked one level up: treat <em>that</em> difference field as a state in its own right, and ask
+              which of <em>its</em> cells are about to change under the same rule. Not a property of the original
+              state directly &mdash; a property of how the state is changing.
+            </p>
           </section>
 
           <section id="commutator" style={{ padding: '1.6rem 0', borderTop: '1px solid var(--rule)', background: 'var(--bg)' }}>
             <div style={sectionKicker}>Instrument</div>
-            <h2 style={h2Style}>The single-rule commutator G</h2>
+            <h2 style={h2Style}>The Groovy Commutator G</h2>
             <div style={formulaBlock}>
               <div>G(S) = C(D(E(S)), E(D(S)))</div>
             </div>
@@ -527,10 +529,18 @@ export default function Concepts() {
                 : isAffine ? 'this rule is GF(2)-affine — G is the same constant for every state, every step.'
                 : 'this rule is not affine — G is not constant; watch the strip below churn.'}
             </p>
-            <div>
-              <canvas className="gc-field" ref={gRef} style={{ width: 160, height: 160 }}></canvas>
-              <div className="gc-mono" style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', marginTop: '0.3rem' }}>G(S), compare to D(S) above</div>
-            </div>
+            <InstrumentViewer
+              items={[
+                { label: 'raw state', field: computed && computed.raw, color: ON_COLOR },
+                { label: 'D(S)', field: computed && computed.d, color: ACCENT },
+                { label: 'G(S)', field: computed && computed.g, color: 'oklch(0.5 0.13 300)' },
+              ]}
+              exploreHref={buildSeedUrl([
+                { id: 1, type: 'source', dim: '1d', rule, ic: initState, steps: STEPS, color: EXPLORE_COLORS.cream },
+                { id: 2, type: 'transform', dim: '1d', from: 1, op: 'd', rule, color: EXPLORE_COLORS.teal },
+                { id: 3, type: 'transform', dim: '1d', from: 1, op: 'g', rule, color: EXPLORE_COLORS.purple },
+              ])}
+            />
           </section>
 
           <section id="absential" style={{ padding: '1.6rem 0', borderTop: '1px solid var(--rule)' }}>
@@ -541,17 +551,35 @@ export default function Concepts() {
               &mdash; or off but adjacent to something alive, which philosopher Terrence Deacon calls{' '}
               <strong>absential</strong>: absence that does causal work by virtue of what it's next to.
             </p>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.4rem', flexWrap: 'wrap' }}>
-              <div>
-                <canvas className="gc-field" ref={absentialRef}></canvas>
-                <div className="gc-mono" style={{ fontSize: '0.72rem', color: 'var(--ink-soft)', marginTop: '0.4rem', maxWidth: 160 }}>absential field, Rule {rule}</div>
-              </div>
-              <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', maxWidth: '42ch', margin: 0 }}>
-                Open question this raises: does this field's own compressibility work as a faster Class-IV detector
-                than looking at G or the raw state? First test didn't confirm it &mdash; see the{' '}
-                <a href="questions.html#absential" style={{ color: 'var(--accent)' }}>questions page</a>.
-              </p>
+            <p style={pBody}>
+              Everything so far has been built from XOR alone &mdash; GF(2) addition. Writing this one down needs two
+              more familiar pieces of boolean algebra: <strong>OR</strong> (&or;, true if either input is true) and{' '}
+              <strong>NOT</strong> (&not;, flips a bit). A cell's closed neighborhood is on if it or either neighbor
+              is on; a cell is absential if its neighborhood is on but it itself isn't:
+            </p>
+            <div style={formulaBlock}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', margin: '0.15em 0' }}><span>N(S) = S &or; left(S) &or; right(S)</span><span style={{ color: 'var(--ink-soft)', fontSize: '0.7rem' }}>closed neighborhood</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', margin: '0.15em 0' }}><span>A(S) = N(S) &and; &not;S</span><span style={{ color: 'var(--ink-soft)', fontSize: '0.7rem' }}>absential field</span></div>
             </div>
+            <InstrumentViewer
+              items={[
+                { label: 'raw state, S', field: computed && computed.raw, color: ON_COLOR },
+                { label: 'A(S)', field: computed && computed.absential, color: 'oklch(0.6 0.14 75)' },
+              ]}
+              exploreHref={buildSeedUrl([
+                { id: 1, type: 'source', dim: '1d', rule, ic: initState, steps: STEPS, color: EXPLORE_COLORS.cream },
+                { id: 2, type: 'transform', dim: '1d', from: 1, op: 'absential', rule, color: EXPLORE_COLORS.amber },
+              ])}
+            />
+            <p style={{ ...pBody, marginTop: '1.1rem' }}>
+              Overlay mode is worth trying here specifically: S and A(S) are never on at the same cell by
+              construction, so the overlay shows them filling in the space around each other, never colliding.
+            </p>
+            <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', maxWidth: '60ch', margin: 0 }}>
+              Open question this raises: does this field's own compressibility work as a faster Class-IV detector
+              than looking at G or the raw state? First test didn't confirm it &mdash; see the{' '}
+              <a href="questions.html#absential" style={{ color: 'var(--accent)' }}>questions page</a>.
+            </p>
           </section>
 
           <section id="secondorder" style={{ padding: '1.6rem 0', borderTop: '1px solid var(--rule)' }}>
