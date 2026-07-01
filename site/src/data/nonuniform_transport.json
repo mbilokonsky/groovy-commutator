@@ -1,0 +1,73 @@
+{
+ "n": 100,
+ "steps": 200,
+ "seeds": 60,
+ "schemes": {
+  "left": {
+   "distinct_final_median": 20,
+   "distinct_final_range": [
+    11,
+    30
+   ],
+   "comp_state_median": 0.147,
+   "novel_rule_cell_frac_median": 0.0,
+   "survival_by_popcount": [
+    0.789,
+    0.556,
+    0.443,
+    0.347,
+    0.231,
+    0.119,
+    0.048,
+    0.036,
+    0.0
+   ],
+   "restless_frac_t0": 0.497,
+   "restless_frac_final": 0.203
+  },
+  "right": {
+   "distinct_final_median": 22,
+   "distinct_final_range": [
+    13,
+    32
+   ],
+   "comp_state_median": 0.142,
+   "novel_rule_cell_frac_median": 0.0,
+   "survival_by_popcount": [
+    0.737,
+    0.644,
+    0.507,
+    0.355,
+    0.256,
+    0.113,
+    0.066,
+    0.018,
+    0.0
+   ],
+   "restless_frac_t0": 0.497,
+   "restless_frac_final": 0.198
+  },
+  "mix": {
+   "distinct_final_median": 67,
+   "distinct_final_range": [
+    57,
+    80
+   ],
+   "comp_state_median": 0.227,
+   "novel_rule_cell_frac_median": 0.565,
+   "survival_by_popcount": [
+    2.105,
+    1.681,
+    1.314,
+    1.023,
+    0.746,
+    0.539,
+    0.407,
+    0.304,
+    0.44
+   ],
+   "restless_frac_t0": 0.497,
+   "restless_frac_final": 0.249
+  }
+ }
+}

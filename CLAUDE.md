@@ -175,9 +175,17 @@ first, they carry the math. Full interpretive writeup and citations are in
      (frozen random field 0.16, mosaic 0.11, gated transport 0.14,
      read-from-state 0.26) lands state-trajectory compressibility in the
      structured band, vs uniform baselines at the extremes (rule 4:
-     0.03; rules 30/90: 1.00; rule 110: 0.82). Suggestive caveats: one
-     transport scheme (leftward copy), one lattice size; selection story
-     is measured correlation, not proven mechanism.
+     0.03; rules 30/90: 1.00; rule 110: 0.82). Transport-scheme
+     robustness now tested (`scripts/experiment_nonuniform_transport.py`
+     → `site/src/data/nonuniform_transport.json`, 60 runs each):
+     rightward copy reproduces every statistic (symmetry control); gated
+     XOR-recombination — which INVENTS rules (57% of final cells carry
+     values absent at t0, diversity plateau ~67 not ~20) — still shows
+     the same selection direction (final pool enriched 2.1× at popcount
+     0, depleted ~3× at the restless end, restless bit 0.50 → 0.25).
+     The quiescence pressure belongs to the gate (only live cells get
+     overwritten), not the variation mechanism. Remaining caveats: one
+     lattice size; correlation, not proven mechanism.
 
 9. **Absential Class-IV detector: established negative (fair 2D test);
    affine theorem is dimension-free** (2026-07-01, `src/groovy/ca2d.py`

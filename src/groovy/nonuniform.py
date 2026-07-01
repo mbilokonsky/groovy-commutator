@@ -94,11 +94,42 @@ def step_gated_diffusion(state: np.ndarray, rule_field: np.ndarray) -> tuple[np.
     return new_state, new_field
 
 
+def step_gated_diffusion_right(state: np.ndarray, rule_field: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Mirror image of step_gated_diffusion: live cells pull their RIGHT
+    neighbor's rule. Symmetry control for the transport-scheme robustness
+    question -- statistics should match the leftward scheme exactly."""
+    new_state = apply_rule_field(state, rule_field)
+    new_field = np.where(state == 1, np.roll(rule_field, -1), rule_field)
+    return new_state, new_field
+
+
+def step_gated_mix(state: np.ndarray, rule_field: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """A qualitatively different rule-field dynamic: where a cell is alive,
+    its rule becomes the XOR of its two neighbors' rules -- GF(2)
+    recombination rather than transport. Unlike copying, this can CREATE
+    rule values not present at t0, so diversity is no longer bounded above
+    by the initial population. Dead cells still keep their rules, so the
+    only-live-cells-get-overwritten selection pressure is unchanged."""
+    new_state = apply_rule_field(state, rule_field)
+    mixed = np.bitwise_xor(np.roll(rule_field, 1), np.roll(rule_field, -1))
+    new_field = np.where(state == 1, mixed, rule_field)
+    return new_state, new_field
+
+
+TRANSPORT_SCHEMES = {
+    "left": step_gated_diffusion,
+    "right": step_gated_diffusion_right,
+    "mix": step_gated_mix,
+}
+
+
 def gated_diffusion_trajectory(state0: np.ndarray, rule_field0: np.ndarray,
-                               steps: int) -> dict:
-    """Run state-gated rule transport, recording both trajectories.
-    Returns dict with 'state' (steps, n) uint8, 'rules' (steps, n) int64,
-    and 'distinct' (steps,) = number of distinct rules present per step."""
+                               steps: int, scheme: str = "left") -> dict:
+    """Run state-gated rule-field dynamics under one of TRANSPORT_SCHEMES,
+    recording both trajectories. Returns dict with 'state' (steps, n)
+    uint8, 'rules' (steps, n) int64, and 'distinct' (steps,) = number of
+    distinct rules present per step."""
+    step_fn = TRANSPORT_SCHEMES[scheme]
     n = len(state0)
     s, f = state0.copy(), rule_field0.copy()
     states = np.zeros((steps, n), dtype=np.uint8)
@@ -108,7 +139,7 @@ def gated_diffusion_trajectory(state0: np.ndarray, rule_field0: np.ndarray,
         states[t] = s
         rules[t] = f
         distinct[t] = len(np.unique(f))
-        s, f = step_gated_diffusion(s, f)
+        s, f = step_fn(s, f)
     return dict(state=states, rules=rules, distinct=distinct)
 
 

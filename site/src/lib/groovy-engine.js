@@ -624,7 +624,38 @@ export function stepGatedDiffusion(state, ruleField) {
   return [newState, newField];
 }
 
-export function gatedDiffusionTrajectory(state0, ruleField0, steps) {
+// Mirror image: live cells pull their RIGHT neighbor's rule (symmetry
+// control -- statistics match the leftward scheme).
+export function stepGatedDiffusionRight(state, ruleField) {
+  const n = state.length;
+  const newState = applyRuleField(state, ruleField);
+  const newField = new Array(n);
+  for (let i = 0; i < n; i++) {
+    newField[i] = state[i] === 1 ? ruleField[(i + 1) % n] : ruleField[i];
+  }
+  return [newState, newField];
+}
+
+// GF(2) recombination: a live cell's rule becomes the XOR of its two
+// neighbors' rules -- can create rule values absent from the initial
+// population, unlike pure transport. Selection pressure (only live cells
+// get overwritten) is unchanged.
+export function stepGatedMix(state, ruleField) {
+  const n = state.length;
+  const newState = applyRuleField(state, ruleField);
+  const newField = new Array(n);
+  for (let i = 0; i < n; i++) {
+    newField[i] = state[i] === 1
+      ? (ruleField[(i - 1 + n) % n] ^ ruleField[(i + 1) % n])
+      : ruleField[i];
+  }
+  return [newState, newField];
+}
+
+const TRANSPORT_SCHEMES = { left: stepGatedDiffusion, right: stepGatedDiffusionRight, mix: stepGatedMix };
+
+export function gatedDiffusionTrajectory(state0, ruleField0, steps, scheme = 'left') {
+  const stepFn = TRANSPORT_SCHEMES[scheme];
   let s = state0.slice();
   let f = ruleField0.slice();
   const states = [], rules = [], distinct = [];
@@ -632,7 +663,7 @@ export function gatedDiffusionTrajectory(state0, ruleField0, steps) {
     states.push(s);
     rules.push(f);
     distinct.push(new Set(f).size);
-    [s, f] = stepGatedDiffusion(s, f);
+    [s, f] = stepFn(s, f);
   }
   return { states, rules, distinct };
 }

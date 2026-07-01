@@ -981,9 +981,19 @@ export default function Questions() {
             quiescence; propagation wants activity; the standoff is a polyculture. As for the state itself:
             every heterogeneous condition tested (quenched random field, mosaic, gated transport) lands its
             trajectory in the structured band (medians 0.11&ndash;0.16) &mdash; heterogeneity alone pins structure
-            that no single uniform rule in the pair-sweep vocabulary produces. Suggestive, not established: one
-            transport scheme (leftward copy), one lattice size, and the selection story is a measured correlation,
-            not a proven mechanism.
+            that no single uniform rule in the pair-sweep vocabulary produces.
+          </p>
+          <p style={{ fontSize: '0.88rem', color: 'var(--ink-soft)', margin: '0.8rem 0 0' }}>
+            <strong style={{ color: 'var(--ink)' }}>Is this an artifact of leftward copying?</strong> No &mdash;
+            tested against two other schemes (60 runs each). The mirror scheme (rightward copy) reproduces every
+            statistic, as symmetry demands. The sharper test is <em>recombination</em>: let a live cell's rule
+            become the XOR of its neighbors' rules, which can invent rules that never existed at the start &mdash;
+            and 57% of final cells do carry invented rules, with diversity stabilizing at ~67 distinct rules
+            instead of ~20. Yet the selection direction survives even there: the final rule pool is enriched
+            2.1&times; toward all-quiet rules and depleted 3&times; at the restless end, despite XOR-mixing itself
+            having no bias about quietness. The push toward quiescence belongs to the <em>gate</em> (only live
+            cells get overwritten), not to the variation mechanism. Still one lattice size, and still a measured
+            correlation rather than a proven mechanism &mdash; but no longer one scheme.
           </p>
         </QuestionCard>
 
