@@ -5,10 +5,12 @@ import { readSeedFromLocation } from '../lib/exploreSeed.js';
 const TYPE_COLORS = {
   source: 'var(--c-source)', transform: 'var(--c-transform)',
   comparison: 'var(--c-comparison)', coupling: 'var(--c-coupling)',
+  prehoc: 'oklch(0.7 0.13 150)',
 };
 const CANVAS_TYPE_COLORS = {
   source: 'oklch(0.72 0.1 195)', transform: 'oklch(0.72 0.14 75)',
   comparison: 'oklch(0.7 0.13 300)', coupling: 'oklch(0.7 0.13 240)',
+  prehoc: 'oklch(0.7 0.13 150)',
 };
 const N = 100, DEFAULT_STEPS = 100;
 const GRID_N = 28, MAX_GEN_2D = 40;
@@ -98,6 +100,9 @@ export default function Explorer() {
   const [modalOp, setModalOp] = useState('raw');
   const [modalRule, setModalRuleState] = useState(110);
   const [modalRuleB, setModalRuleBState] = useState(30);
+  const [modalRuleC, setModalRuleCState] = useState(44);
+  const [modalRuleD, setModalRuleDState] = useState(23);
+  const [modalLayer, setModalLayer] = useState('a');
   const [modalIcSource, setModalIcSourceState] = useState('fresh');
   const [modalIC, setModalIC] = useState(centerSeedIC(N));
   const [modalColor, setModalColor] = useState(CARD_COLORS[1].css);
@@ -162,6 +167,12 @@ export default function Explorer() {
       return out;
     }
     if (c.type === 'coupling') return engine.divergenceTrajectory(Uint8Array.from(c.ic), c.rule, c.ruleB, c.steps);
+    if (c.type === 'prehoc') {
+      const res = engine.coupledTrajectory(
+        Uint8Array.from(c.ic), Uint8Array.from(c.icB),
+        engine.rule4FromPair(c.ruleA0, c.ruleA1), engine.rule4FromPair(c.ruleB0, c.ruleB1), c.steps);
+      return c.layer === 'b' ? res.b : c.layer === 'diff' ? res.diff : res.a;
+    }
     return null;
   }
 
@@ -219,6 +230,14 @@ export default function Explorer() {
     }
     if (c.type === 'comparison') return { title: 'C' + c.from + ' vs C' + c.fromB, desc: 'XOR of C' + c.from + ' and C' + c.fromB + ', step by step.' };
     if (c.type === 'coupling') return { title: 'Rule ' + c.rule + ' ↔ Rule ' + c.ruleB, desc: 'Cross-rule divergence, rule ' + c.rule + ' vs rule ' + c.ruleB + '.' };
+    if (c.type === 'prehoc') {
+      const layerLabel = { a: 'layer A', b: 'layer B', diff: 'disagreement C(A,B)' }[c.layer || 'a'];
+      return {
+        title: 'Pre-hoc (' + c.ruleA0 + ',' + c.ruleA1 + ' | ' + c.ruleB0 + ',' + c.ruleB1 + ') · ' + layerLabel,
+        desc: 'Two mutually coupled layers: A steps by rule ' + c.ruleA0 + ' or ' + c.ruleA1 +
+          ' (chosen per cell by B), B by rule ' + c.ruleB0 + ' or ' + c.ruleB1 + ' (chosen by A). Showing ' + layerLabel + '.',
+      };
+    }
     return { title: '?', desc: '' };
   }
   function metaFor2D(c) {
@@ -264,8 +283,8 @@ export default function Explorer() {
       // sources/couplings first (no upstream deps), then anything that
       // reads from them -- correct for the depth-1 chains real seeds use.
       const ids = initial.order;
-      const sources = ids.filter((id) => ['source', 'coupling'].includes(cardConfigs[id].type));
-      const rest = ids.filter((id) => !['source', 'coupling'].includes(cardConfigs[id].type));
+      const sources = ids.filter((id) => ['source', 'coupling', 'prehoc'].includes(cardConfigs[id].type));
+      const rest = ids.filter((id) => !['source', 'coupling', 'prehoc'].includes(cardConfigs[id].type));
       [...sources, ...rest].forEach((id) => { fields[id] = computeField(id); });
       touch();
     });
@@ -368,9 +387,24 @@ export default function Explorer() {
     setModalSurvive(c.survive ? c.survive.slice() : [2, 3]);
     setModalBornB(c.bornB ? c.bornB.slice() : [3, 6]);
     setModalSurviveB(c.surviveB ? c.surviveB.slice() : [2, 3]);
+    if (c.type === 'prehoc') {
+      setModalRuleState(c.ruleA0); setModalRuleBState(c.ruleA1);
+      setModalRuleCState(c.ruleB0); setModalRuleDState(c.ruleB1);
+      setModalLayer(c.layer || 'a');
+    }
   }
   function closeModal() { setModalOpen(false); setModalType(null); setEditingCardId(null); }
-  function chooseModalType(type) { setModalType(type); setModalColor(randomCardColor()); }
+  function chooseModalType(type) {
+    setModalType(type);
+    setModalColor(randomCardColor());
+    // seed the four component rules with the emergence example from the
+    // questions page, so the default new card is already interesting
+    if (type === 'prehoc') {
+      setModalRuleState(77); setModalRuleBState(55);
+      setModalRuleCState(44); setModalRuleDState(23);
+      setModalLayer('a');
+    }
+  }
 
   function toggleModalDigit(which, n) {
     const setters = { modalBorn: [modalBorn, setModalBorn], modalSurvive: [modalSurvive, setModalSurvive], modalBornB: [modalBornB, setModalBornB], modalSurviveB: [modalSurviveB, setModalSurviveB] };
@@ -404,6 +438,8 @@ export default function Explorer() {
   function setModalFromB(e) { setModalFromBState(Number(e.target.value)); }
   function setModalRule(e) { setModalRuleState(Math.max(0, Math.min(255, parseInt(e.target.value, 10) || 0))); }
   function setModalRuleB(e) { setModalRuleBState(Math.max(0, Math.min(255, parseInt(e.target.value, 10) || 0))); }
+  function setModalRuleC(e) { setModalRuleCState(Math.max(0, Math.min(255, parseInt(e.target.value, 10) || 0))); }
+  function setModalRuleD(e) { setModalRuleDState(Math.max(0, Math.min(255, parseInt(e.target.value, 10) || 0))); }
   function setModalIcSource(e) { setModalIcSourceState(e.target.value); }
 
   function createCard() {
@@ -426,6 +462,7 @@ export default function Explorer() {
         else if (type === 'transform') patch = { from: modalFrom, op: modalOp, rule: modalRule };
         else if (type === 'comparison') { if (modalFrom === modalFromB) return; patch = { from: modalFrom, fromB: modalFromB }; }
         else if (type === 'coupling') patch = { rule: modalRule, ruleB: modalRuleB };
+        else if (type === 'prehoc') patch = { ruleA0: modalRule, ruleA1: modalRuleB, ruleB0: modalRuleC, ruleB1: modalRuleD, layer: modalLayer };
         else return;
       }
       patch.color = modalColor;
@@ -455,6 +492,22 @@ export default function Explorer() {
         if (modalIcSource === 'fresh') ic = Array.from({ length: N }, () => (Math.random() < 0.5 ? 0 : 1));
         else ic = cardConfigs[Number(modalIcSource)].ic.slice();
         config = { id, type, dim, rule: modalRule, ruleB: modalRuleB, ic, steps: DEFAULT_STEPS };
+      } else if (type === 'prehoc') {
+        let ic, icB;
+        const src = modalIcSource !== 'fresh' ? cardConfigs[Number(modalIcSource)] : null;
+        if (src && src.type === 'prehoc') {
+          // reusing another pre-hoc card's starting rows makes the two
+          // cards' layers correspond exactly -- e.g. one card showing
+          // layer A, another showing C(A,B), same underlying run
+          ic = src.ic.slice(); icB = src.icB.slice();
+        } else if (src && src.ic) {
+          ic = src.ic.slice();
+          icB = Array.from({ length: N }, () => (Math.random() < 0.5 ? 0 : 1));
+        } else {
+          ic = Array.from({ length: N }, () => (Math.random() < 0.5 ? 0 : 1));
+          icB = Array.from({ length: N }, () => (Math.random() < 0.5 ? 0 : 1));
+        }
+        config = { id, type, dim, ruleA0: modalRule, ruleA1: modalRuleB, ruleB0: modalRuleC, ruleB1: modalRuleD, layer: modalLayer, ic, icB, steps: DEFAULT_STEPS };
       } else return;
     }
 
@@ -482,10 +535,11 @@ export default function Explorer() {
     transform: 'color-mix(in oklch, var(--c-transform) 25%, transparent)',
     comparison: 'color-mix(in oklch, var(--c-comparison) 25%, transparent)',
     coupling: 'color-mix(in oklch, var(--c-coupling) 25%, transparent)',
+    prehoc: 'color-mix(in oklch, oklch(0.7 0.13 150) 25%, transparent)',
   };
 
   const cardOptions = modeIds.map((id) => ({ value: id, label: 'C' + id + ': ' + metaFor(id).title }));
-  const sourceCardOptions = modeIds.filter((id) => cardConfigs[id].type === 'source' || cardConfigs[id].type === 'coupling')
+  const sourceCardOptions = modeIds.filter((id) => ['source', 'coupling', 'prehoc'].includes(cardConfigs[id].type))
     .map((id) => ({ value: String(id), label: 'C' + id }));
 
   const opDefs = [
@@ -532,7 +586,7 @@ export default function Explorer() {
   const soloMeta = soloId != null ? metaFor(soloId) : null;
   const soloBuiltFrom = soloId != null ? builtFromOf(soloId).filter((x) => x != null) : [];
   const soloUsedBy = soloId != null ? dependentsOf(soloId) : [];
-  const soloIsConfigurable = soloConfig ? (soloConfig.rule != null || soloConfig.ruleB != null || soloConfig.born != null || soloConfig.type === 'transform' || soloConfig.type === 'comparison') : false;
+  const soloIsConfigurable = soloConfig ? (soloConfig.rule != null || soloConfig.ruleB != null || soloConfig.born != null || soloConfig.type === 'transform' || soloConfig.type === 'comparison' || soloConfig.type === 'prehoc') : false;
 
   const multiPanels = (!isSingle && !isSuper) ? selectedIds.map((id) => ({ id, c: cardConfigs[id], meta: metaFor(id) })) : [];
   const superSelected = (!isSingle && isSuper) ? selectedIds : [];
@@ -657,7 +711,7 @@ export default function Explorer() {
             {!isSingle && !isSuper && selectedIds.length > 0 && (
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-start' }}>
                 {multiPanels.map((p) => {
-                  const isConfigurable = p.c.rule != null || p.c.ruleB != null || p.c.born != null || p.c.type === 'transform' || p.c.type === 'comparison';
+                  const isConfigurable = p.c.rule != null || p.c.ruleB != null || p.c.born != null || p.c.type === 'transform' || p.c.type === 'comparison' || p.c.type === 'prehoc';
                   return (
                     <div key={p.id} style={{ width: 170, border: '1px solid var(--rule)', borderRadius: 8, background: 'var(--inset)', overflow: 'hidden', flex: 'none' }}>
                       <div style={{ padding: '7px 8px', borderBottom: '1px solid var(--rule)', display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -730,6 +784,9 @@ export default function Explorer() {
                         <button onClick={() => chooseModalType('transform')} style={typeCardBtnStyle('transform')}><div className="ex-typechip" style={{ background: 'none', color: 'var(--c-transform)', padding: 0, marginBottom: 3 }}>transform</div><div style={{ fontSize: '9.5px', color: 'var(--ink-soft)' }}>one input, row-by-row</div></button>
                         <button onClick={() => chooseModalType('comparison')} style={typeCardBtnStyle('comparison')}><div className="ex-typechip" style={{ background: 'none', color: 'var(--c-comparison)', padding: 0, marginBottom: 3 }}>comparison</div><div style={{ fontSize: '9.5px', color: 'var(--ink-soft)' }}>XOR two inputs</div></button>
                         <button onClick={() => chooseModalType('coupling')} style={typeCardBtnStyle('coupling')}><div className="ex-typechip" style={{ background: 'none', color: 'var(--c-coupling)', padding: 0, marginBottom: 3 }}>coupling</div><div style={{ fontSize: '9.5px', color: 'var(--ink-soft)' }}>two rules, shared IC</div></button>
+                        {!is2D && (
+                          <button onClick={() => chooseModalType('prehoc')} style={typeCardBtnStyle('prehoc')}><div className="ex-typechip" style={{ background: 'none', color: TYPE_COLORS.prehoc, padding: 0, marginBottom: 3 }}>pre-hoc</div><div style={{ fontSize: '9.5px', color: 'var(--ink-soft)' }}>two coupled layers, 4-input rules</div></button>
+                        )}
                       </div>
                     </>
                   ) : (
@@ -856,6 +913,46 @@ export default function Explorer() {
                             </select>
                           </div>
                           <p style={{ fontSize: '9.5px', color: 'var(--ink-soft)', margin: '8px 0 0' }}>Reusing a source's IC copies its current row &mdash; not its rule.</p>
+                        </>
+                      )}
+
+                      {modalType === 'prehoc' && !is2D && (
+                        <>
+                          <p style={{ fontSize: '9.5px', color: 'var(--ink-soft)', lineHeight: 1.5, margin: '0 0 10px' }}>
+                            Two layers, each stepped by a 4-input rule whose fourth input is the other layer's
+                            current cell — the other layer picks, per cell, which of two elementary rules applies.
+                            Defaults are the "emergence" example from the questions page: all four parts boring
+                            alone, coupled structure. Both layers start from fresh random rows.
+                          </p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: 10, color: 'var(--ink-soft)', width: 100 }}>layer A: x=0 / x=1</span>
+                            <input type="number" min="0" max="255" value={modalRule} onChange={setModalRule} style={{ width: 58, fontFamily: "'IBM Plex Mono',monospace", fontSize: 12, fontWeight: 700, textAlign: 'center', padding: 4, borderRadius: 5, border: '1px solid var(--accent)', background: 'var(--inset)', color: 'var(--ink)' }} />
+                            <input type="number" min="0" max="255" value={modalRuleB} onChange={setModalRuleB} style={{ width: 58, fontFamily: "'IBM Plex Mono',monospace", fontSize: 12, fontWeight: 700, textAlign: 'center', padding: 4, borderRadius: 5, border: '1px solid var(--accent)', background: 'var(--inset)', color: 'var(--ink)' }} />
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: 10, color: 'var(--ink-soft)', width: 100 }}>layer B: x=0 / x=1</span>
+                            <input type="number" min="0" max="255" value={modalRuleC} onChange={setModalRuleC} style={{ width: 58, fontFamily: "'IBM Plex Mono',monospace", fontSize: 12, fontWeight: 700, textAlign: 'center', padding: 4, borderRadius: 5, border: '1px solid var(--accent)', background: 'var(--inset)', color: 'var(--ink)' }} />
+                            <input type="number" min="0" max="255" value={modalRuleD} onChange={setModalRuleD} style={{ width: 58, fontFamily: "'IBM Plex Mono',monospace", fontSize: 12, fontWeight: 700, textAlign: 'center', padding: 4, borderRadius: 5, border: '1px solid var(--accent)', background: 'var(--inset)', color: 'var(--ink)' }} />
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: 10, color: 'var(--ink-soft)', width: 100 }}>show</span>
+                            {[['a', 'layer A'], ['b', 'layer B'], ['diff', 'C(A,B)']].map(([key, label]) => (
+                              <button key={key} onClick={() => setModalLayer(key)} style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', fontWeight: 700, padding: '4px 8px', borderRadius: 5, cursor: 'pointer', border: '1px solid ' + (modalLayer === key ? TYPE_COLORS.prehoc : 'var(--rule)'), background: modalLayer === key ? `color-mix(in oklch, ${TYPE_COLORS.prehoc} 20%, transparent)` : 'none', color: modalLayer === key ? TYPE_COLORS.prehoc : 'var(--ink-soft)' }}>{label}</button>
+                            ))}
+                          </div>
+                          {editingCardId == null && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '10px 0 0' }}>
+                              <span style={{ fontSize: 10, color: 'var(--ink-soft)', width: 100 }}>starting rows</span>
+                              <select value={modalIcSource} onChange={setModalIcSource} style={{ flex: 1, fontFamily: "'IBM Plex Mono',monospace", fontSize: '10.5px', padding: 4, borderRadius: 5, border: '1px solid var(--rule)', background: 'var(--inset)', color: 'var(--ink)' }}>
+                                <option value="fresh">fresh random rows</option>
+                                {sourceCardOptions.map((opt) => <option key={opt.value} value={opt.value}>reuse {opt.label}</option>)}
+                              </select>
+                            </div>
+                          )}
+                          <p style={{ fontSize: '9.5px', color: 'var(--ink-soft)', margin: '8px 0 0' }}>
+                            To see layer A, layer B, and C(A,B) of the <em>same run</em> side by side: create this
+                            card, then add it twice more reusing its starting rows with different "show" choices.
+                          </p>
                         </>
                       )}
 

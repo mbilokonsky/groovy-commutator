@@ -352,6 +352,17 @@ function RuleWalkthrough() {
 // is explained in the section around it; the full experimental findings
 // live on the questions page. Self-contained (imports the engine itself)
 // so it doesn't touch the sticky rule panel's plumbing.
+// Deterministic pseudo-random 0/1 rows for the Explorer deep-link seed --
+// the link is built at render time, before the engine module is loaded, so
+// it can't use the engine's randomState.
+function seedRow(n, seed) {
+  let x = seed >>> 0 || 1;
+  return Array.from({ length: n }, () => {
+    x ^= x << 13; x >>>= 0; x ^= x >> 17; x ^= x << 5; x >>>= 0;
+    return x & 1;
+  });
+}
+
 function PrehocMiniDemo() {
   const [seed, setSeed] = useState(3);
   const engineRef = useRef(null);
@@ -389,10 +400,19 @@ function PrehocMiniDemo() {
           <div className="gc-mono" style={{ fontSize: '0.66rem', color: INK_SOFT, marginTop: 3 }}>{label}</div>
         </div>
       ))}
-      <button onClick={() => setSeed((s) => s + 1)} className="gc-mono"
-        style={{ fontSize: '0.72rem', fontWeight: 700, padding: '0.4rem 0.8rem', borderRadius: 7, border: '1px solid var(--rule)', background: '#fff', color: INK_SOFT, cursor: 'pointer' }}>
-        reroll ↻
-      </button>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+        <button onClick={() => setSeed((s) => s + 1)} className="gc-mono"
+          style={{ fontSize: '0.72rem', fontWeight: 700, padding: '0.4rem 0.8rem', borderRadius: 7, border: '1px solid var(--rule)', background: '#fff', color: INK_SOFT, cursor: 'pointer' }}>
+          reroll ↻
+        </button>
+        <a href={buildSeedUrl([
+          { id: 1, type: 'prehoc', dim: '1d', ruleA0: 77, ruleA1: 55, ruleB0: 44, ruleB1: 23, layer: 'a', ic: seedRow(100, 9), icB: seedRow(100, 77), steps: 100, color: EXPLORE_COLORS.cream },
+          { id: 2, type: 'prehoc', dim: '1d', ruleA0: 77, ruleA1: 55, ruleB0: 44, ruleB1: 23, layer: 'b', ic: seedRow(100, 9), icB: seedRow(100, 77), steps: 100, color: EXPLORE_COLORS.teal },
+          { id: 3, type: 'prehoc', dim: '1d', ruleA0: 77, ruleA1: 55, ruleB0: 44, ruleB1: 23, layer: 'diff', ic: seedRow(100, 9), icB: seedRow(100, 77), steps: 100, color: EXPLORE_COLORS.purple },
+        ])} className="gc-mono" style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--accent)', textDecoration: 'none' }}>
+          Explore this &rarr;
+        </a>
+      </div>
     </div>
   );
 }
