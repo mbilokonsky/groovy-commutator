@@ -86,3 +86,31 @@ def absential_trajectory_2d(grid0: np.ndarray, born: set[int], survive: set[int]
 
 def random_grid(h: int, w: int, density: float, rng: np.random.Generator) -> np.ndarray:
     return (rng.random((h, w)) < density).astype(np.uint8)
+
+
+# ---- non-uniform 2D: per-cell Life-like rules (see nonuniform.py for the
+# 1D construction and the selection findings this mirrors) ----------------
+
+def apply_rule_field_2d(grid: np.ndarray, born_mask: np.ndarray,
+                        surv_mask: np.ndarray) -> np.ndarray:
+    """One step where each cell follows its OWN Life-like rule, given as
+    per-cell 9-bit masks (bit k of born_mask[i,j] = 'born on k live
+    neighbors', likewise surv_mask). A uniform rule is the special case of
+    constant masks."""
+    nc = neighbor_count(grid)
+    alive = grid.astype(bool)
+    next_alive = np.where(alive, (surv_mask >> nc) & 1, (born_mask >> nc) & 1)
+    return next_alive.astype(np.uint8)
+
+
+def step_gated_transport_2d(grid: np.ndarray, born_mask: np.ndarray,
+                            surv_mask: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """2D analog of nonuniform.step_gated_diffusion: the rule field
+    persists, and a live cell copies its west neighbor's rule masks over
+    its own (dead cells keep theirs). Same gate, same predicted selection
+    pressure: rules that quiet their host cell are never displaced."""
+    new_grid = apply_rule_field_2d(grid, born_mask, surv_mask)
+    born_w = np.roll(born_mask, 1, axis=1)
+    surv_w = np.roll(surv_mask, 1, axis=1)
+    alive = grid == 1
+    return new_grid, np.where(alive, born_w, born_mask), np.where(alive, surv_w, surv_mask)

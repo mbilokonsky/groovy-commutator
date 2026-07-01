@@ -1027,7 +1027,11 @@ export default function Questions() {
             accident either: the plateau holds at every size tested and grows sublinearly with the ring
             (median 10 / 21.5 / 36.5 / 63 / 96.5 distinct rules at n = 50&ndash;800, log-log slope &asymp; 0.8,
             each verified flat out to 1,600 steps) &mdash; bigger worlds sustain more rules, but proportionally
-            fewer. What remains: a measured correlation rather than a proven mechanism, and 1D only.
+            fewer. Nor is it a 1D artifact: per-cell <em>Life-like</em> rules on a 2D torus (9-bit born/survive
+            masks, live cells copying their west neighbor's rule) reproduce the whole phenomenon &mdash; a
+            perfectly monotone survival gradient (1.00 at born-popcount 0 down to 0.00 at 8&ndash;9), mean
+            born-popcount drifting 4.5 &rarr; 2.6, and a stable ~283-rule polyculture on a 4,096-cell grid.
+            What remains: a measured correlation rather than a proven mechanism.
           </p>
         </QuestionCard>
 

@@ -188,8 +188,14 @@ first, they carry the math. Full interpretive writeup and citations are in
      (`scripts/experiment_nonuniform_scaling.py`): median plateau
      10/21.5/36.5/63/96.5 distinct rules at n=50/100/200/400/800,
      log-log slope 0.81, each verified flat out to t=1600 — genuinely
-     stable polycultures at every size, sublinear in n. Remaining
-     caveats: 1D only; correlation, not proven mechanism.
+     stable polycultures at every size, sublinear in n. Dimension
+     robustness (`scripts/experiment_nonuniform_2d.py` +
+     `ca2d.apply_rule_field_2d`/`step_gated_transport_2d`): per-cell
+     Life-like rules (9-bit born/survive masks) on a 64×64 torus
+     reproduce everything — monotone survival gradient 1.000 → 0.000
+     across born-popcount 0→9, mean born-popcount 4.5 → 2.6, restless
+     born-on-0 bit 0.50 → 0.36, stable ~283-rule polyculture. Remaining
+     caveat: correlation, not proven mechanism.
 
 9. **Pair-lineage meta-evolution: bigger rule space does not buy
    open-endedness** (2026-07-01, `scripts/experiment_metaevolution_pairs.py`

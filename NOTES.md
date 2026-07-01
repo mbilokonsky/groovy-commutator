@@ -496,4 +496,12 @@ changing the ecology's shape (diversity plateau ~67 rules, 57% of cells
 carrying invented rules). The quiescence pressure is a property of the
 gate, not of the variation mechanism — which is exactly the
 selection/variation decomposition evolutionary theory would ask for.
-Still open: whether the plateau scales with n; 2D rule fields.
+Both now run. Plateau-vs-n: stable at every size (verified flat to
+t=1600), growing sublinearly (log-log slope 0.81) — bigger worlds hold
+more rules but proportionally fewer. Dimension: per-cell Life-like rules
+on a 2D torus (9-bit born/survive masks, west-neighbor transport)
+reproduce the full phenomenon — monotone survival gradient by
+born-popcount (1.00 → 0.00), mean born-popcount 4.5 → 2.6, stable
+~283-rule polyculture on 4,096 cells. The selection-for-quiescence
+pressure now stands across: three variation mechanisms, five lattice
+sizes, and two dimensions. What it still isn't: a proven mechanism.
