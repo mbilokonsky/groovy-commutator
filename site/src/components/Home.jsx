@@ -22,9 +22,9 @@ export default function Home() {
           </h1>
           <p style={{ fontSize: '1.12rem', color: 'var(--ink-soft)', margin: '0 0 1.8em', maxWidth: '62ch' }}>
             Every state here is a row of bits, and almost everything is built from a single operation &mdash; XOR.
-            From that alone: a derivative, an integral, a commutator that turns out to behave like the one in quantum
-            mechanics, rules that mutate their own rulebook, and a handful of genuinely open questions about what
-            happens when two of these systems are made to interact.
+            From that alone: a derivative, an integral, a commutator that asks whether two operations agree on their
+            order, rules that mutate their own rulebook, and a handful of genuinely open questions about what happens
+            when two of these systems are made to interact.
           </p>
 
           <AmbientCA1D />

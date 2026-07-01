@@ -116,6 +116,19 @@ export function dTrajectory(state0, ruleNum, steps) {
   return field;
 }
 
+// The second derivative: apply D to its own output under the same rule,
+// D(D(S)) -- not part of src/groovy/ (a demo-only convenience, like the
+// other *Trajectory helpers), but a real reading of "differentiate twice."
+export function d2Trajectory(state0, ruleNum, steps) {
+  let state = state0.slice();
+  const field = [];
+  for (let t = 0; t < steps; t++) {
+    field.push(D(D(state, ruleNum), ruleNum));
+    state = applyRule(state, ruleNum);
+  }
+  return field;
+}
+
 export function gTrajectory(state0, ruleNum, steps) {
   let state = state0.slice();
   const field = [];

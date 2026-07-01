@@ -48,6 +48,7 @@ const TOC = [
   ['#ca', 'Cellular automata'],
   ['#calculus', 'Boolean calculus'],
   ['#state', 'State → State'],
+  ['#secondderivative', 'Second derivative'],
   ['#commutator', 'The commutator G'],
   ['#absential', 'Absential cells'],
   ['#secondorder', 'Reversible memory'],
@@ -70,6 +71,47 @@ const h3Style = { fontFamily: "'Lora',serif", fontSize: '1.1rem', margin: '1.4em
 const pBody = { fontSize: '0.98rem', color: 'var(--ink-soft)', margin: '0 0 1.1rem', maxWidth: '60ch' };
 const formulaBlock = { fontFamily: "'IBM Plex Mono',monospace", background: 'var(--bg-alt)', border: '1px solid var(--rule)', padding: '0.9rem 1.1rem', borderRadius: 8, fontSize: '0.86rem', margin: '0 0 1.1rem' };
 
+const CLASS_EXAMPLES = [
+  { rule: 0, cls: 'I' },
+  { rule: 4, cls: 'II' },
+  { rule: 30, cls: 'III' },
+  { rule: 110, cls: 'IV' },
+];
+
+// Fixed, non-interactive reference examples -- one per informal Wolfram
+// class -- computed once on mount, independent of whatever rule the
+// reader later picks in the interactive panel below.
+function ClassExamples() {
+  const refsRef = useRef(CLASS_EXAMPLES.map(() => ({ current: null })));
+  useEffect(() => {
+    let cancelled = false;
+    import('../lib/groovy-engine.js').then((engine) => {
+      if (cancelled) return;
+      const n = 90, steps = 90;
+      const s0 = engine.randomState(n, 7);
+      CLASS_EXAMPLES.forEach((ex, i) => {
+        const field = engine.evolveTrajectory(s0, ex.rule, steps);
+        const canvas = refsRef.current[i].current;
+        if (canvas) engine.renderFieldToCanvas(canvas, field, '#2a2420', '#f1ead9');
+      });
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  return (
+    <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap', margin: '0 0 1.1rem' }}>
+      {CLASS_EXAMPLES.map((ex, i) => (
+        <div key={ex.rule} style={{ flex: '1 1 120px', minWidth: 100, maxWidth: 160 }}>
+          <canvas className="gc-field" ref={refsRef.current[i]} style={{ width: '100%', height: 'auto', aspectRatio: '1' }}></canvas>
+          <div className="gc-mono" style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', marginTop: '0.3rem', textAlign: 'center' }}>
+            Class {ex.cls} &middot; rule {ex.rule}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function Concepts() {
   const [rule, setRule] = useState(110);
   const [ruleInputText, setRuleInputText] = useState('110');
@@ -88,6 +130,9 @@ export default function Concepts() {
   const caRef = useRef(null);
   const caRef2 = useRef(null);
   const dRef = useRef(null);
+  const caRef3 = useRef(null);
+  const dRef2 = useRef(null);
+  const d2Ref = useRef(null);
   const gRef = useRef(null);
   const absentialRef = useRef(null);
   const secondOrderRef = useRef(null);
@@ -121,16 +166,21 @@ export default function Concepts() {
   // ---- redraw single-rule views whenever rule or initState changes ----
   useEffect(() => {
     if (!engineReady) return;
-    const { evolveTrajectory, dTrajectory, gTrajectory, absentialTrajectory,
+    const { evolveTrajectory, dTrajectory, d2Trajectory, gTrajectory, absentialTrajectory,
       runSecondOrder, verifySecondOrderReversible, renderFieldToCanvas } = engineRef.current;
     const s0 = Uint8Array.from(initState);
 
     const raw = evolveTrajectory(s0, rule, STEPS);
     if (caRef.current) renderFieldToCanvas(caRef.current, raw, ON_COLOR, '#f1ead9');
     if (caRef2.current) renderFieldToCanvas(caRef2.current, raw, ON_COLOR, '#f1ead9');
+    if (caRef3.current) renderFieldToCanvas(caRef3.current, raw, ON_COLOR, '#f1ead9');
 
     const dField = dTrajectory(s0, rule, STEPS);
     if (dRef.current) renderFieldToCanvas(dRef.current, dField, ACCENT, '#f1ead9');
+    if (dRef2.current) renderFieldToCanvas(dRef2.current, dField, ACCENT, '#f1ead9');
+
+    const d2Field = d2Trajectory(s0, rule, STEPS);
+    if (d2Ref.current) renderFieldToCanvas(d2Ref.current, d2Field, 'oklch(0.55 0.14 30)', '#f1ead9');
 
     const gField = gTrajectory(s0, rule, STEPS);
     if (gRef.current) renderFieldToCanvas(gRef.current, gField, 'oklch(0.5 0.13 300)', '#f1ead9');
@@ -215,29 +265,70 @@ export default function Concepts() {
           {TOC.map(([href, label]) => <a key={href} href={href} style={pill}>{label}</a>)}
         </nav>
 
-        {/* CELLULAR AUTOMATA -- 1D and 2D, before any algebra */}
+        {/* CELLULAR AUTOMATA -- general definition, then 1D, then 2D as commentary */}
         <section id="ca" style={{ padding: '1.6rem 0', borderTop: '1px solid var(--rule)' }}>
           <div style={sectionKicker}>Substrate</div>
           <h2 style={h2Style}>Cellular automata</h2>
           <p style={pBody}>
-            A row of cells on a circular lattice. Each tick, every cell looks at itself and its two neighbors (8
-            possible 3-cell patterns) and outputs 0 or 1. That 8-entry lookup table, read as a number, is the{' '}
-            <strong>rule number</strong> &mdash; rule 110, rule 30, rule 90, and so on. That's <strong>one
-            dimension</strong>. Everything below builds from the 1D case, but the same idea generalizes to a grid:
-            each cell looks at its 8 neighbors (Moore neighborhood) instead of 2, and the rule is usually written as
-            "born on N neighbors, survive on M" (<strong>B/S notation</strong>) &mdash; Conway's Life is B3/S23.
-            Here's Life, running on its own, no controls, just for texture:
+            A cellular automaton is a regular grid of cells, each holding a small value (here, just 0 or 1), all
+            updating together, forever, according to one shared rule that only ever looks at a cell's local
+            neighborhood &mdash; never the whole grid. The grid itself can have any number of dimensions: a line, a
+            2D plane, a 3D lattice. The definition doesn't care. What changes as dimension goes up is how big the
+            neighborhood is, and how much rule-space there is to explore.
           </p>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.4rem', flexWrap: 'wrap' }}>
-            <AmbientCA2D size={180} />
-            <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', maxWidth: '42ch', margin: 0 }}>
-              Every instrument on this page (derivative, commutator, absential field, reversible memory) is defined
-              identically for 1D and 2D &mdash; only the neighborhood changes. The <a href="explorer.html" style={{ color: 'var(--accent)' }}>explorer</a>{' '}
-              lets you build and couple 2D rules the same way as 1D. The rest of this page works the 1D case by hand,
-              since it's easier to see clearly.
-            </p>
-          </div>
+
+          <h3 style={h3Style}>In one dimension</h3>
+          <p style={pBody}>
+            Start with the simplest case: a single row of cells, arranged in a circle so the last cell's right
+            neighbor wraps back around to the first. Each tick, every cell looks at itself and its two immediate
+            neighbors &mdash; three cells, eight possible on/off combinations, conventionally listed all-on down to
+            all-off (111, 110, 101, 100, 011, 010, 001, 000). A rule is nothing more than a table of eight
+            outputs, one per combination. Read those eight outputs off in that order as a binary number and you get
+            the <strong>rule number</strong> &mdash; rule 110, rule 30, rule 90, and so on. 256 possible rules
+            total. The interactive rule-builder below shows exactly this table: eight small diagrams, three cells on
+            top (the neighborhood, fixed) and one cell below (the output, click to flip it and build your own rule
+            live).
+          </p>
+
+          <h3 style={h3Style}>Four rough classes</h3>
+          <p style={pBody}>
+            Wolfram's informal classification of what a rule does, long-run, run from one random starting row:
+          </p>
+          <ClassExamples />
+          <p style={pBody}>
+            Class I dies out to a fixed pattern, Class II settles into small repeating cycles, Class III looks like
+            noise, and Class IV sits in between &mdash; structured, but not obviously periodic. These labels are
+            informal, not rigorous &mdash; see <code className="gc-code">classify.py</code>. Treat them as a
+            starting vocabulary, not ground truth.
+          </p>
+
+          <h3 style={h3Style}>In more than one dimension</h3>
+          <p style={pBody}>
+            The same idea generalizes straightforwardly to a grid: each cell looks at its 8 neighbors (the Moore
+            neighborhood) instead of 2. Listing outputs for a 512-entry table by hand is unwieldy, so 2D rules are
+            usually specified by neighbor <em>count</em> instead of exact pattern &mdash; "born on N neighbors,
+            survive on M" (<strong>B/S notation</strong>). Conway's Life is B3/S23. One conventional difference in
+            how these get drawn: 1D CA are usually shown with time running down the page, since the row itself
+            already fills the horizontal axis; 2D CA use both spatial axes for space, so time has to play out as an
+            actual animation instead. Here's Life running on its own, no controls, just for texture:
+          </p>
+          <AmbientCA2D size={180} />
+          <p style={{ ...pBody, marginTop: '1.1rem' }}>
+            Rule-space also explodes fast with dimension. 1D elementary CA have 256 possible rules; the B/S family
+            of 2D rules alone has 512 &times; 512 = 262,144; a rule sensitive to the exact 2D neighborhood pattern
+            (the direct analog of the 1D lookup table, but for 9 cells instead of 3) would have 2<sup>512</sup> of
+            them &mdash; a number too large to be worth writing out.
+          </p>
+          <p style={pBody}>
+            Everything below works the 1D case by hand, since it's small enough to see clearly &mdash; but every
+            instrument here (derivative, commutator, absential field, reversible memory) is defined identically
+            regardless of dimension; only the neighborhood changes. The{' '}
+            <a href="explorer.html" style={{ color: 'var(--accent)' }}>explorer</a> lets you build and couple 2D
+            rules the same way as 1D.
+          </p>
         </section>
+
+        <hr style={{ border: 'none', borderTop: '1px solid var(--rule)', margin: 0 }} />
 
         {/* STICKY RULE + STARTING-ROW PANEL, shared by everything below through Instruments */}
         <div style={{ position: 'relative' }}>
@@ -268,11 +359,11 @@ export default function Concepts() {
               {selectedGlyphs.map((nb) => (
                 <div key={nb.idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, border: '1px solid var(--ink-soft)', borderRadius: 4, padding: 3 }}>
                   <div style={{ display: 'flex', gap: 1 }}>
-                    <div style={{ width: 9, height: 9, border: '1px solid var(--ink)', background: nb.l ? ON_COLOR : OFF_COLOR }}></div>
-                    <div style={{ width: 9, height: 9, border: '1px solid var(--ink)', background: nb.c ? ON_COLOR : OFF_COLOR }}></div>
-                    <div style={{ width: 9, height: 9, border: '1px solid var(--ink)', background: nb.r ? ON_COLOR : OFF_COLOR }}></div>
+                    {[nb.l, nb.c, nb.r].map((bit, i) => (
+                      <div key={i} className="gc-mono" style={{ width: 13, height: 13, border: '1px solid var(--ink)', background: bit ? ON_COLOR : OFF_COLOR, color: bit ? OFF_COLOR : ON_COLOR, fontSize: 8, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>{bit}</div>
+                    ))}
                   </div>
-                  <button onClick={() => toggleOutputBit(nb.idx)} style={{ width: 9, height: 9, padding: 0, border: '1.5px solid var(--accent)', background: nb.out ? ON_COLOR : OFF_COLOR, cursor: 'pointer' }}></button>
+                  <button onClick={() => toggleOutputBit(nb.idx)} className="gc-mono" style={{ width: 13, height: 13, padding: 0, border: '1.5px solid var(--accent)', background: nb.out ? ON_COLOR : OFF_COLOR, color: nb.out ? OFF_COLOR : ON_COLOR, fontSize: 8, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>{nb.out}</button>
                 </div>
               ))}
             </div>
@@ -298,9 +389,9 @@ export default function Concepts() {
                 <div className="gc-mono" style={{ fontSize: '0.72rem', color: 'var(--ink-soft)', marginTop: '0.4rem', maxWidth: 160 }}>raw evolution, Rule {rule}</div>
               </div>
               <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', maxWidth: '42ch', margin: 0 }}>
-                The textbook Wolfram class labels above are informal, not rigorous &mdash; see{' '}
-                <code className="gc-code">classify.py</code>. Edit the starting row above (or randomize it) and
-                watch every view on this page update from it, including everything in the next few sections.
+                This is the same rule-number/lookup-table system as the four classes shown earlier, now with a rule
+                you built yourself. Edit the starting row above (or randomize it) and watch every view on this page
+                update from it, including everything in the next few sections.
               </p>
             </div>
           </section>
@@ -390,7 +481,33 @@ export default function Concepts() {
             </div>
           </section>
 
-          {/* INSTRUMENTS: G, ABSENTIAL, SECOND-ORDER */}
+          {/* INSTRUMENTS: D², G, ABSENTIAL, SECOND-ORDER */}
+          <section id="secondderivative" style={{ padding: '1.6rem 0', borderTop: '1px solid var(--rule)' }}>
+            <div style={sectionKicker}>Instrument</div>
+            <h2 style={h2Style}>The second derivative</h2>
+            <div style={formulaBlock}>
+              <div>D&sup2;(S) = D(D(S))</div>
+            </div>
+            <p style={pBody}>
+              The obvious next move once <code className="gc-code">D</code> exists: apply it to its own output,
+              under the same rule. Raw state, D(S), and D&sup2;(S), for Rule {rule}:
+            </p>
+            <div className="gc-lens-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1rem' }}>
+              <div>
+                <canvas className="gc-field" ref={caRef3} style={{ width: '100%', height: 'auto', aspectRatio: '1' }}></canvas>
+                <div className="gc-mono" style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', marginTop: '0.3rem' }}>raw state</div>
+              </div>
+              <div>
+                <canvas className="gc-field" ref={dRef2} style={{ width: '100%', height: 'auto', aspectRatio: '1' }}></canvas>
+                <div className="gc-mono" style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', marginTop: '0.3rem' }}>D(S)</div>
+              </div>
+              <div>
+                <canvas className="gc-field" ref={d2Ref} style={{ width: '100%', height: 'auto', aspectRatio: '1' }}></canvas>
+                <div className="gc-mono" style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', marginTop: '0.3rem' }}>D&sup2;(S)</div>
+              </div>
+            </div>
+          </section>
+
           <section id="commutator" style={{ padding: '1.6rem 0', borderTop: '1px solid var(--rule)', background: 'var(--bg)' }}>
             <div style={sectionKicker}>Instrument</div>
             <h2 style={h2Style}>The single-rule commutator G</h2>
@@ -399,10 +516,9 @@ export default function Concepts() {
             </div>
             <p style={pBody}>
               Differentiate-then-evolve, compared against evolve-then-differentiate: does order agree? Same
-              construction as the commutator <code className="gc-code">[A,B] = AB - BA</code> from ordinary algebra
-              &mdash; it shows up famously in quantum mechanics (position and momentum don't commute), but the
-              construction itself is older and more general than physics; QM is one place it happens to appear, not
-              where it comes from.
+              construction as the commutator <code className="gc-code">[A,B] = AB - BA</code> from ordinary
+              algebra &mdash; does applying two operations one way give the same result as applying them the other
+              way.
             </p>
             <p style={pBody}>
               <strong>The affine theorem:</strong> G(S) is the same for every possible S, forever, if and only if
