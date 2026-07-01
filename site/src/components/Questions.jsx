@@ -5,6 +5,7 @@ import drainData from '../data/drain_predictor.json';
 import thresholdData from '../data/threshold_check.json';
 import prehocData from '../data/prehoc_coupling.json';
 import nonuniformData from '../data/nonuniform.json';
+import absential2dData from '../data/absential_2d.json';
 
 const REGIME_COUNTS = [
   { key: 'structured', count: 14751 },
@@ -751,7 +752,7 @@ export default function Questions() {
         <QuestionCard
           id="absential"
           q="Can “boring” and “alive” behavior be told apart more cheaply than watching a rule evolve?"
-          status="exploratory" statusLabel="Exploratory (inconclusive)"
+          status="established" statusLabel="Established (negative) — 2D tested"
         >
           <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', margin: '0 0 1rem' }}>
             Hypothesis: cells that are off-but-adjacent-to-alive (the absential field, see Concepts) might compress
@@ -782,12 +783,50 @@ export default function Questions() {
               })}
             </div>
           </div>
+          <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', margin: '1rem 0 1rem' }}>
+            The 1D test above was inconclusive but also unfair &mdash; elementary CA don't have the persistent
+            localized structures (gliders, still lifes) the hypothesis was framed around. So the fair version has
+            now been run (<code className="gc-code">scripts/experiment_absential_2d.py</code>): seven Life-like 2D
+            rules with well-known informal characters, random soup, and compressibility measured on the settled
+            tail of each run (steps {absential2dData.settle_from}&ndash;{absential2dData.steps}, where Class IV
+            should have condensed into structures while Class III is still churning):
+          </p>
+          <div style={{ overflowX: 'auto' }}>
+            <div className="gc-abs-table" style={{ gridTemplateColumns: '0.9fr 1.6fr 0.7fr 0.9fr' }}>
+              <div className="head">Rule</div>
+              <div className="head">Character</div>
+              <div className="head">Raw</div>
+              <div className="head">Absential</div>
+              {absential2dData.rules.map((r) => (
+                <Fragment key={r.rule}>
+                  <div>{r.rule.replace('_', ' ')}</div>
+                  <div>{r.note}</div>
+                  <div>{r.raw_settled.toFixed(3)}</div>
+                  <div>{r.abs_settled.toFixed(3)}</div>
+                </Fragment>
+              ))}
+            </div>
+          </div>
+          <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', margin: '1rem 0 0' }}>
+            And on the hypothesis's own home turf &mdash; pure structure fields under Life itself &mdash; six
+            scattered still-life blocks compress to {absential2dData.probes[0].raw.toFixed(3)} raw
+            vs {absential2dData.probes[0].absential.toFixed(3)} absential, and six gliders to{' '}
+            {absential2dData.probes[1].raw.toFixed(3)} vs {absential2dData.probes[1].absential.toFixed(3)}:
+            the two views never come apart, even here.
+          </p>
           <p style={{ fontSize: '0.88rem', color: 'var(--ink-soft)', margin: '1rem 0 0' }}>
-            <strong style={{ color: 'var(--ink)' }}>What this says:</strong> not from this test. The absential field
-            tracks E(S)'s compressibility closely in every case, consistently a little more compressible,
-            never dramatically so. Four rules is a thin sample, and elementary CA don't really have the kind of
-            persistent localized structures (gliders, still lifes) the hypothesis was framed around &mdash; a fairer
-            test would use 2D automata with known stable structures, like Conway's Life.
+            <strong style={{ color: 'var(--ink)' }}>What this says:</strong> no &mdash; and now with the fair test,
+            so this is a real negative, not a shrug. The absential field's compressibility is a monotone rescaling
+            of the raw state's in every condition tested (slightly <em>more</em> compressible in 1D, slightly{' '}
+            <em>less</em> in 2D where the Moore halo is denser &mdash; but always tracking, never cross-cutting).
+            Two consolation findings worth keeping: plain settled-window compressibility on its own is a decent
+            informal class detector &mdash; frozen rules land at 0.01&ndash;0.02, the three Class IV rules in a
+            tight middle band (0.32&ndash;0.36), chaos at 0.79 &mdash; echoing the pair-regime result that
+            &ldquo;interesting&rdquo; lives in the compressibility middle. And the affine theorem crossed dimensions
+            intact: B1357/S1357 (&ldquo;Replicator&rdquo;, neighbor parity &mdash; the 2D analog of rule 90) has
+            G<sub>2D</sub> &equiv; 0 on all {absential2dData.affine_2d.trials} random grids tested, while Life's
+            G<sub>2D</sub> was nonzero on all {absential2dData.affine_2d.trials} controls &mdash; the kinematic/dynamical
+            split is not a 1D artifact.
           </p>
         </QuestionCard>
 

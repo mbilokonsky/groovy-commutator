@@ -172,6 +172,26 @@ first, they carry the math. Full interpretive writeup and citations are in
      transport scheme (leftward copy), one lattice size; selection story
      is measured correlation, not proven mechanism.
 
+9. **Absential Class-IV detector: established negative (fair 2D test);
+   affine theorem is dimension-free** (2026-07-01, `src/groovy/ca2d.py`
+   — Python 2D engine at parity with the JS one,
+   `scripts/experiment_absential_2d.py` → `results/absential_2d.csv` +
+   `site/src/data/absential_2d.json`). Seven Life-like rules from soup
+   (60×60 — NOT 64×64, the parity rule is nilpotent on power-of-two
+   tori; Day & Night at 0.5 soup density, it dies at 0.15), settled
+   window steps 140-240, 8 seeds. Absential-field compressibility is a
+   monotone rescaling of raw-state compressibility in every condition —
+   slightly MORE compressible in 1D, slightly LESS in 2D (denser Moore
+   halo), never cross-cutting — including the hypothesis's home turf
+   (pure still-life fields 0.005 raw / 0.005 abs; pure glider fields
+   0.034 / 0.051). Hypothesis dead; stop testing it. Consolation
+   results: (a) plain settled-window compressibility bands the informal
+   classes on its own (frozen 0.01-0.02, Class IV tight middle band
+   0.32-0.36, additive 0.61, chaos 0.79); (b) B1357/S1357 "Replicator"
+   is neighbor parity = the 2D rule 90, and G2 ≡ 0 on 50/50 random
+   grids (Life nonzero on 50/50 controls) — the affine theorem (result
+   1) is not a 1D artifact.
+
 ## New instruments (added 2026-06-30, from a separate chat-interface exploration)
 
 Four directions came out of a parallel conversation; two are implemented,
@@ -181,9 +201,11 @@ section 6 for the full writeup and citations.
 - **Absential field** (`metrics.absential_field`, `operators.absential_trajectory`)
   — cells that are off but adjacent to an on cell (closed-neighborhood
   dilation minus the live set), distinct from "void" cells with no live
-  neighbor. Candidate fast Class-IV / structure detector: run
-  `classify.compressibility` on an absential-field trajectory instead of
-  on `G`. Implemented, not yet validated against known Class I-IV rules.
+  neighbor. The candidate fast Class-IV-detector use is now settled
+  negative — see established result 9 (fair 2D test with real gliders
+  and still lifes; absential compressibility always tracks raw). The
+  field itself remains a fine instrument (it IS elementary rule 50, per
+  the prehoc collapse theorem).
 - **Second-order / reversible memory** (`secondorder.py`) — Margolus-Fredkin
   style `S(t+1) = phi(S(t)) XOR S(t-1)`. Implemented and composable with
   the rest of the package (e.g. feeding `D(t-1)` in as the memory term

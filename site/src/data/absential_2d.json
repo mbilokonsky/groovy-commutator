@@ -1,0 +1,149 @@
+{
+ "h": 60,
+ "w": 60,
+ "steps": 240,
+ "settle_from": 140,
+ "seeds": 8,
+ "density": 0.15,
+ "rules": [
+  {
+   "rule": "no_birth",
+   "note": "I \u2014 everything dies from soup",
+   "born": [],
+   "survive": [
+    2,
+    3
+   ],
+   "raw_settled": 0.007,
+   "abs_settled": 0.01,
+   "raw_full": 0.011,
+   "abs_full": 0.016,
+   "density_settled": 0.021
+  },
+  {
+   "rule": "maze",
+   "note": "II \u2014 freezes into a static maze",
+   "born": [
+    3
+   ],
+   "survive": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "raw_settled": 0.016,
+   "abs_settled": 0.016,
+   "raw_full": 0.051,
+   "abs_full": 0.058,
+   "density_settled": 0.55
+  },
+  {
+   "rule": "life",
+   "note": "IV \u2014 still lifes, oscillators, gliders",
+   "born": [
+    3
+   ],
+   "survive": [
+    2,
+    3
+   ],
+   "raw_settled": 0.336,
+   "abs_settled": 0.504,
+   "raw_full": 0.42,
+   "abs_full": 0.616,
+   "density_settled": 0.074
+  },
+  {
+   "rule": "highlife",
+   "note": "IV \u2014 Life plus a replicator",
+   "born": [
+    3,
+    6
+   ],
+   "survive": [
+    2,
+    3
+   ],
+   "raw_settled": 0.324,
+   "abs_settled": 0.481,
+   "raw_full": 0.385,
+   "abs_full": 0.556,
+   "density_settled": 0.072
+  },
+  {
+   "rule": "daynight",
+   "note": "III/IV \u2014 large-scale churn",
+   "born": [
+    3,
+    6,
+    7,
+    8
+   ],
+   "survive": [
+    3,
+    4,
+    6,
+    7,
+    8
+   ],
+   "raw_settled": 0.357,
+   "abs_settled": 0.439,
+   "raw_full": 0.593,
+   "abs_full": 0.665,
+   "density_settled": 0.348
+  },
+  {
+   "rule": "seeds",
+   "note": "III \u2014 explosive chaos",
+   "born": [
+    2
+   ],
+   "survive": [],
+   "raw_settled": 0.793,
+   "abs_settled": 0.957,
+   "raw_full": 0.793,
+   "abs_full": 0.957,
+   "density_settled": 0.211
+  },
+  {
+   "rule": "replicator",
+   "note": "additive \u2014 2D rule 90",
+   "born": [
+    1,
+    3,
+    5,
+    7
+   ],
+   "survive": [
+    1,
+    3,
+    5,
+    7
+   ],
+   "raw_settled": 0.606,
+   "abs_settled": 0.606,
+   "raw_full": 0.275,
+   "abs_full": 0.275,
+   "density_settled": 0.499
+  }
+ ],
+ "probes": [
+  {
+   "probe": "still_lifes",
+   "raw": 0.005,
+   "absential": 0.005
+  },
+  {
+   "probe": "gliders",
+   "raw": 0.034,
+   "absential": 0.051
+  }
+ ],
+ "affine_2d": {
+  "replicator_g2_zero": true,
+  "life_g2_nonzero_controls": 50,
+  "trials": 50
+ }
+}
