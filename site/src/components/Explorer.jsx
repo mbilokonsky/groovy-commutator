@@ -5,12 +5,12 @@ import { readSeedFromLocation } from '../lib/exploreSeed.js';
 const TYPE_COLORS = {
   source: 'var(--c-source)', transform: 'var(--c-transform)',
   comparison: 'var(--c-comparison)', coupling: 'var(--c-coupling)',
-  prehoc: 'oklch(0.7 0.13 150)',
+  prehoc: 'oklch(0.7 0.13 150)', rulefield: 'oklch(0.66 0.15 22)',
 };
 const CANVAS_TYPE_COLORS = {
   source: 'oklch(0.72 0.1 195)', transform: 'oklch(0.72 0.14 75)',
   comparison: 'oklch(0.7 0.13 300)', coupling: 'oklch(0.7 0.13 240)',
-  prehoc: 'oklch(0.7 0.13 150)',
+  prehoc: 'oklch(0.7 0.13 150)', rulefield: 'oklch(0.66 0.15 22)',
 };
 const N = 100, DEFAULT_STEPS = 100;
 const GRID_N = 28, MAX_GEN_2D = 40;
@@ -103,6 +103,7 @@ export default function Explorer() {
   const [modalRuleC, setModalRuleCState] = useState(44);
   const [modalRuleD, setModalRuleDState] = useState(23);
   const [modalLayer, setModalLayer] = useState('a');
+  const [modalScheme, setModalScheme] = useState('left');
   const [modalIcSource, setModalIcSourceState] = useState('fresh');
   const [modalIC, setModalIC] = useState(centerSeedIC(N));
   const [modalColor, setModalColor] = useState(CARD_COLORS[1].css);
@@ -173,6 +174,10 @@ export default function Explorer() {
         engine.rule4FromPair(c.ruleA0, c.ruleA1), engine.rule4FromPair(c.ruleB0, c.ruleB1), c.steps);
       return c.layer === 'b' ? res.b : c.layer === 'diff' ? res.diff : res.a;
     }
+    if (c.type === 'rulefield') {
+      const res = engine.gatedDiffusionTrajectory(Uint8Array.from(c.ic), c.ruleField.slice(), c.steps, c.scheme || 'left');
+      return c.layer === 'rules' ? res.rules : res.states;
+    }
     return null;
   }
 
@@ -238,6 +243,14 @@ export default function Explorer() {
           ' (chosen per cell by B), B by rule ' + c.ruleB0 + ' or ' + c.ruleB1 + ' (chosen by A). Showing ' + layerLabel + '.',
       };
     }
+    if (c.type === 'rulefield') {
+      const schemeLabel = { left: 'leftward copy', right: 'rightward copy', mix: 'XOR recombination' }[c.scheme || 'left'];
+      return {
+        title: 'Rule field (' + schemeLabel + ') · ' + (c.layer === 'rules' ? 'the rules' : 'the state'),
+        desc: 'Every cell follows its own rule; live cells get their rule overwritten (' + schemeLabel +
+          '), dead cells keep theirs. Showing ' + (c.layer === 'rules' ? 'the rule field itself, one color per rule value.' : 'the state the rules produce.'),
+      };
+    }
     return { title: '?', desc: '' };
   }
   function metaFor2D(c) {
@@ -270,6 +283,12 @@ export default function Explorer() {
       if (grid) engine.renderGrid2DToCanvas(ref.current, grid, color, '#2c2620');
       return;
     }
+    if (c.type === 'rulefield' && c.layer === 'rules') {
+      // byte-valued field: always the hashed-color renderer (opaque --
+      // superimposing a 256-value field has no meaningful blend anyway)
+      engine.renderByteFieldToCanvas(ref.current, field);
+      return;
+    }
     const selCount = Object.keys(selected).filter((k) => selected[k]).length;
     if (layoutMode === 'super' && selCount > 1) engine.renderFieldToCanvasTransparent(ref.current, field, color);
     else engine.renderFieldToCanvas(ref.current, field, color, '#2c2620');
@@ -283,8 +302,8 @@ export default function Explorer() {
       // sources/couplings first (no upstream deps), then anything that
       // reads from them -- correct for the depth-1 chains real seeds use.
       const ids = initial.order;
-      const sources = ids.filter((id) => ['source', 'coupling', 'prehoc'].includes(cardConfigs[id].type));
-      const rest = ids.filter((id) => !['source', 'coupling', 'prehoc'].includes(cardConfigs[id].type));
+      const sources = ids.filter((id) => ['source', 'coupling', 'prehoc', 'rulefield'].includes(cardConfigs[id].type));
+      const rest = ids.filter((id) => !['source', 'coupling', 'prehoc', 'rulefield'].includes(cardConfigs[id].type));
       [...sources, ...rest].forEach((id) => { fields[id] = computeField(id); });
       touch();
     });
@@ -392,6 +411,10 @@ export default function Explorer() {
       setModalRuleCState(c.ruleB0); setModalRuleDState(c.ruleB1);
       setModalLayer(c.layer || 'a');
     }
+    if (c.type === 'rulefield') {
+      setModalScheme(c.scheme || 'left');
+      setModalLayer(c.layer || 'state');
+    }
   }
   function closeModal() { setModalOpen(false); setModalType(null); setEditingCardId(null); }
   function chooseModalType(type) {
@@ -403,6 +426,10 @@ export default function Explorer() {
       setModalRuleState(77); setModalRuleBState(55);
       setModalRuleCState(44); setModalRuleDState(23);
       setModalLayer('a');
+    }
+    if (type === 'rulefield') {
+      setModalScheme('left');
+      setModalLayer('state');
     }
   }
 
@@ -463,6 +490,7 @@ export default function Explorer() {
         else if (type === 'comparison') { if (modalFrom === modalFromB) return; patch = { from: modalFrom, fromB: modalFromB }; }
         else if (type === 'coupling') patch = { rule: modalRule, ruleB: modalRuleB };
         else if (type === 'prehoc') patch = { ruleA0: modalRule, ruleA1: modalRuleB, ruleB0: modalRuleC, ruleB1: modalRuleD, layer: modalLayer };
+        else if (type === 'rulefield') patch = { scheme: modalScheme, layer: modalLayer };
         else return;
       }
       patch.color = modalColor;
@@ -508,6 +536,18 @@ export default function Explorer() {
           icB = Array.from({ length: N }, () => (Math.random() < 0.5 ? 0 : 1));
         }
         config = { id, type, dim, ruleA0: modalRule, ruleA1: modalRuleB, ruleB0: modalRuleC, ruleB1: modalRuleD, layer: modalLayer, ic, icB, steps: DEFAULT_STEPS };
+      } else if (type === 'rulefield') {
+        let ic, ruleField;
+        const src = modalIcSource !== 'fresh' ? cardConfigs[Number(modalIcSource)] : null;
+        if (src && src.type === 'rulefield') {
+          // reuse both starting row AND starting rule field: two cards of
+          // the same run, one showing the state, one showing the rules
+          ic = src.ic.slice(); ruleField = src.ruleField.slice();
+        } else {
+          ic = src && src.ic ? src.ic.slice() : Array.from({ length: N }, () => (Math.random() < 0.5 ? 0 : 1));
+          ruleField = Array.from({ length: N }, () => Math.floor(Math.random() * 256));
+        }
+        config = { id, type, dim, scheme: modalScheme, layer: modalLayer, ic, ruleField, steps: DEFAULT_STEPS };
       } else return;
     }
 
@@ -536,9 +576,14 @@ export default function Explorer() {
     comparison: 'color-mix(in oklch, var(--c-comparison) 25%, transparent)',
     coupling: 'color-mix(in oklch, var(--c-coupling) 25%, transparent)',
     prehoc: 'color-mix(in oklch, oklch(0.7 0.13 150) 25%, transparent)',
+    rulefield: 'color-mix(in oklch, oklch(0.66 0.15 22) 25%, transparent)',
   };
 
-  const cardOptions = modeIds.map((id) => ({ value: id, label: 'C' + id + ': ' + metaFor(id).title }));
+  // rules-view cards emit byte fields, not 0/1 fields -- keep them out of
+  // the binary-input menus (transform/comparison "from" selects)
+  const cardOptions = modeIds
+    .filter((id) => !(cardConfigs[id].type === 'rulefield' && cardConfigs[id].layer === 'rules'))
+    .map((id) => ({ value: id, label: 'C' + id + ': ' + metaFor(id).title }));
   const sourceCardOptions = modeIds.filter((id) => ['source', 'coupling', 'prehoc'].includes(cardConfigs[id].type))
     .map((id) => ({ value: String(id), label: 'C' + id }));
 
@@ -586,7 +631,7 @@ export default function Explorer() {
   const soloMeta = soloId != null ? metaFor(soloId) : null;
   const soloBuiltFrom = soloId != null ? builtFromOf(soloId).filter((x) => x != null) : [];
   const soloUsedBy = soloId != null ? dependentsOf(soloId) : [];
-  const soloIsConfigurable = soloConfig ? (soloConfig.rule != null || soloConfig.ruleB != null || soloConfig.born != null || soloConfig.type === 'transform' || soloConfig.type === 'comparison' || soloConfig.type === 'prehoc') : false;
+  const soloIsConfigurable = soloConfig ? (soloConfig.rule != null || soloConfig.ruleB != null || soloConfig.born != null || ['transform', 'comparison', 'prehoc', 'rulefield'].includes(soloConfig.type)) : false;
 
   const multiPanels = (!isSingle && !isSuper) ? selectedIds.map((id) => ({ id, c: cardConfigs[id], meta: metaFor(id) })) : [];
   const superSelected = (!isSingle && isSuper) ? selectedIds : [];
@@ -711,7 +756,7 @@ export default function Explorer() {
             {!isSingle && !isSuper && selectedIds.length > 0 && (
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-start' }}>
                 {multiPanels.map((p) => {
-                  const isConfigurable = p.c.rule != null || p.c.ruleB != null || p.c.born != null || p.c.type === 'transform' || p.c.type === 'comparison' || p.c.type === 'prehoc';
+                  const isConfigurable = p.c.rule != null || p.c.ruleB != null || p.c.born != null || ['transform', 'comparison', 'prehoc', 'rulefield'].includes(p.c.type);
                   return (
                     <div key={p.id} style={{ width: 170, border: '1px solid var(--rule)', borderRadius: 8, background: 'var(--inset)', overflow: 'hidden', flex: 'none' }}>
                       <div style={{ padding: '7px 8px', borderBottom: '1px solid var(--rule)', display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -786,6 +831,9 @@ export default function Explorer() {
                         <button onClick={() => chooseModalType('coupling')} style={typeCardBtnStyle('coupling')}><div className="ex-typechip" style={{ background: 'none', color: 'var(--c-coupling)', padding: 0, marginBottom: 3 }}>coupling</div><div style={{ fontSize: '9.5px', color: 'var(--ink-soft)' }}>two rules, shared IC</div></button>
                         {!is2D && (
                           <button onClick={() => chooseModalType('prehoc')} style={typeCardBtnStyle('prehoc')}><div className="ex-typechip" style={{ background: 'none', color: TYPE_COLORS.prehoc, padding: 0, marginBottom: 3 }}>pre-hoc</div><div style={{ fontSize: '9.5px', color: 'var(--ink-soft)' }}>two coupled layers, 4-input rules</div></button>
+                        )}
+                        {!is2D && (
+                          <button onClick={() => chooseModalType('rulefield')} style={typeCardBtnStyle('rulefield')}><div className="ex-typechip" style={{ background: 'none', color: TYPE_COLORS.rulefield, padding: 0, marginBottom: 3 }}>rule field</div><div style={{ fontSize: '9.5px', color: 'var(--ink-soft)' }}>a rule per cell, state-gated transport</div></button>
                         )}
                       </div>
                     </>
@@ -952,6 +1000,43 @@ export default function Explorer() {
                           <p style={{ fontSize: '9.5px', color: 'var(--ink-soft)', margin: '8px 0 0' }}>
                             To see layer A, layer B, and C(A,B) of the <em>same run</em> side by side: create this
                             card, then add it twice more reusing its starting rows with different "show" choices.
+                          </p>
+                        </>
+                      )}
+
+                      {modalType === 'rulefield' && !is2D && (
+                        <>
+                          <p style={{ fontSize: '9.5px', color: 'var(--ink-soft)', lineHeight: 1.5, margin: '0 0 10px' }}>
+                            Every cell follows its own rule (seeded random, 0&ndash;255). The rule field persists:
+                            dead cells keep their rule, live cells get theirs overwritten by the chosen scheme.
+                            Selection shows up on its own &mdash; see the questions page.
+                          </p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: 10, color: 'var(--ink-soft)', width: 60 }}>scheme</span>
+                            {[['left', 'copy ←'], ['right', 'copy →'], ['mix', 'XOR mix']].map(([key, label]) => (
+                              <button key={key} onClick={() => setModalScheme(key)} style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', fontWeight: 700, padding: '4px 8px', borderRadius: 5, cursor: 'pointer', border: '1px solid ' + (modalScheme === key ? TYPE_COLORS.rulefield : 'var(--rule)'), background: modalScheme === key ? `color-mix(in oklch, ${TYPE_COLORS.rulefield} 20%, transparent)` : 'none', color: modalScheme === key ? TYPE_COLORS.rulefield : 'var(--ink-soft)' }}>{label}</button>
+                            ))}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: 10, color: 'var(--ink-soft)', width: 60 }}>show</span>
+                            {[['state', 'the state'], ['rules', 'the rules']].map(([key, label]) => (
+                              <button key={key} onClick={() => setModalLayer(key)} style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', fontWeight: 700, padding: '4px 8px', borderRadius: 5, cursor: 'pointer', border: '1px solid ' + (modalLayer === key ? TYPE_COLORS.rulefield : 'var(--rule)'), background: modalLayer === key ? `color-mix(in oklch, ${TYPE_COLORS.rulefield} 20%, transparent)` : 'none', color: modalLayer === key ? TYPE_COLORS.rulefield : 'var(--ink-soft)' }}>{label}</button>
+                            ))}
+                          </div>
+                          {editingCardId == null && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '10px 0 0' }}>
+                              <span style={{ fontSize: 10, color: 'var(--ink-soft)', width: 60 }}>start</span>
+                              <select value={modalIcSource} onChange={setModalIcSource} style={{ flex: 1, fontFamily: "'IBM Plex Mono',monospace", fontSize: '10.5px', padding: 4, borderRadius: 5, border: '1px solid var(--rule)', background: 'var(--inset)', color: 'var(--ink)' }}>
+                                <option value="fresh">fresh random row + rules</option>
+                                {sourceCardOptions.map((opt) => <option key={opt.value} value={opt.value}>reuse {opt.label}</option>)}
+                              </select>
+                            </div>
+                          )}
+                          <p style={{ fontSize: '9.5px', color: 'var(--ink-soft)', margin: '8px 0 0' }}>
+                            Reusing another rule-field card copies its starting row <em>and</em> starting rules
+                            &mdash; one card showing the state and one showing the rules of the same run. The
+                            "rules" view is byte-valued (one color per rule), so it can't feed transform or
+                            comparison cards.
                           </p>
                         </>
                       )}

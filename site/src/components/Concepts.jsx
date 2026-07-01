@@ -363,6 +363,14 @@ function seedRow(n, seed) {
   });
 }
 
+function seedBytes(n, seed) {
+  let x = seed >>> 0 || 1;
+  return Array.from({ length: n }, () => {
+    x ^= x << 13; x >>>= 0; x ^= x >> 17; x ^= x << 5; x >>>= 0;
+    return x & 0xff;
+  });
+}
+
 function PrehocMiniDemo() {
   const [seed, setSeed] = useState(3);
   const engineRef = useRef(null);
@@ -458,10 +466,18 @@ function RuleFieldMiniDemo() {
           <div className="gc-mono" style={{ fontSize: '0.66rem', color: INK_SOFT, marginTop: 3 }}>{label}</div>
         </div>
       ))}
-      <button onClick={() => setSeed((s) => s + 1)} className="gc-mono"
-        style={{ fontSize: '0.72rem', fontWeight: 700, padding: '0.4rem 0.8rem', borderRadius: 7, border: '1px solid var(--rule)', background: '#fff', color: INK_SOFT, cursor: 'pointer' }}>
-        reroll ↻
-      </button>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+        <button onClick={() => setSeed((s) => s + 1)} className="gc-mono"
+          style={{ fontSize: '0.72rem', fontWeight: 700, padding: '0.4rem 0.8rem', borderRadius: 7, border: '1px solid var(--rule)', background: '#fff', color: INK_SOFT, cursor: 'pointer' }}>
+          reroll ↻
+        </button>
+        <a href={buildSeedUrl([
+          { id: 1, type: 'rulefield', dim: '1d', scheme: 'left', layer: 'state', ic: seedRow(100, 21), ruleField: seedBytes(100, 55), steps: 100, color: EXPLORE_COLORS.cream },
+          { id: 2, type: 'rulefield', dim: '1d', scheme: 'left', layer: 'rules', ic: seedRow(100, 21), ruleField: seedBytes(100, 55), steps: 100, color: EXPLORE_COLORS.red },
+        ])} className="gc-mono" style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--accent)', textDecoration: 'none' }}>
+          Explore this &rarr;
+        </a>
+      </div>
     </div>
   );
 }
