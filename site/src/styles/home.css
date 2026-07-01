@@ -1,0 +1,4 @@
+@media (max-width: 620px) {
+  .gc-stats { grid-template-columns: 1fr !important; }
+  .gc-cta { flex-direction: column; align-items: stretch !important; }
+}

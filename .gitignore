@@ -21,3 +21,10 @@ Thumbs.db
 
 # Local env / secrets
 .env
+
+# Node / Vite site (site/ is the source; public/ is generated -- see
+# .github/workflows/pages.yml, which builds it fresh before every deploy)
+site/node_modules/
+site/dist/
+/public/
+

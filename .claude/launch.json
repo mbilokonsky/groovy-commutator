@@ -2,10 +2,16 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "public-site",
+      "name": "site-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "site"],
+      "port": 5173
+    },
+    {
+      "name": "site-preview",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "4173", "--directory", "public"],
-      "port": 4173
+      "runtimeArgs": ["-m", "http.server", "4174", "--directory", "public"],
+      "port": 4174
     }
   ]
 }

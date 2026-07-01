@@ -134,12 +134,23 @@ section 6 for the full writeup and citations.
 - `results/` — sweep outputs (parquet/csv) and generated figures. Treat
   this as data, not scratch space — name files so it's clear what
   parameters produced them (rule range, seed count, date if it matters).
-- `public/` — the GitHub Pages site (index/concepts/findings.html +
-  `assets/`). Built by `scripts/build_findings_assets.py`, which is a
-  *consumer* of `results/` data plus the script that runs the
-  absential-detector and meta-evolution-generator experiments and writes
-  every PNG the site embeds — keep it that way rather than letting the
-  site recompute sweeps itself. `.claude/launch.json` has a static-server
+- `site/` — the GitHub Pages site's source (React + Vite, four pages:
+  home/concepts/findings/explorer). `site/src/lib/groovy-engine.js` is a
+  hand-ported JS mirror of `src/groovy/*.py` (1D functions) plus a 2D
+  Life-like extension the Python package doesn't have yet — if you change
+  the Python math, update the JS to match, and vice versa. Static figures
+  the site embeds (e.g. `regime_heatmap.png`) live in
+  `site/public/assets/img/` (Vite's own static-passthrough convention,
+  distinct from the repo-root `public/`) and are produced by
+  `scripts/build_findings_assets.py` — keep that script as the source of
+  those PNGs rather than letting the site recompute full sweeps itself;
+  the site's live-computed charts (Findings page) work from small
+  hardcoded/checked-in datasets, not from re-running `scripts/`.
+- `public/` (repo root) — **generated**, gitignored. `npm run build
+  --prefix site` produces it; `.github/workflows/pages.yml` does this in
+  CI before every deploy. Never edit its contents directly — changes
+  belong in `site/`. `.claude/launch.json` has both a `site-dev` (Vite,
+  hot reload) and `site-preview` (serves the built `public/` as-is)
   config for `Claude_Preview`/local preview.
 - `NOTES.md` — the "why": citations, QM correspondence, the speculative
   interpretive thread. `CLAUDE.md` (this file) — the "what to build

@@ -1,0 +1,3 @@
+@media (max-width: 620px) {
+  .gc-lens-row { grid-template-columns: 1fr 1fr !important; }
+}

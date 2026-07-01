@@ -1,0 +1,52 @@
+.gc-finding {
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 1.5rem 1.6rem 1.7rem;
+  margin: 0 0 1.5rem;
+}
+.gc-finding-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.7rem;
+}
+.gc-finding-head h3 {
+  font-family: 'Lora', serif;
+  font-size: 1.15rem;
+  margin: 0;
+  font-weight: 600;
+}
+.gc-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  border: 1.5px solid;
+  white-space: nowrap;
+}
+.gc-badge.established { border-color: oklch(0.45 0.1 165); color: oklch(0.4 0.1 165); background: oklch(0.94 0.03 165); }
+.gc-badge.suggestive { border-color: oklch(0.5 0.12 80); color: oklch(0.45 0.12 80); background: oklch(0.95 0.04 80); }
+.gc-badge.exploratory { border-color: oklch(0.48 0.1 320); color: oklch(0.45 0.1 320); background: oklch(0.95 0.03 320); }
+
+.gc-abs-table {
+  display: grid;
+  grid-template-columns: 0.6fr 0.6fr 1fr 1.3fr 0.8fr 1fr;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.78rem;
+  min-width: 480px;
+}
+.gc-abs-table > div {
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid var(--rule);
+}
+.gc-abs-table > div.head {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.66rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}

@@ -24,13 +24,19 @@ rules. Origin: https://liet-codes.github.io/wet-math/commutator.html
 - `results/` — sweep outputs: `sweep_full.parquet` (raw), 
   `sweep_full_classified.parquet` (regime-labeled, joined with image_ratio),
   `sweep_summary.csv`, `image_ratios.csv`.
-- `public/` — the GitHub Pages site: a landing page, a concepts page
-  (boolean calculus, the State&rarr;State shape, each instrument), and a
-  findings page (confidence-labeled results with visuals). Built by
-  `scripts/build_findings_assets.py`, which also runs the absential
-  detector / meta-evolution generator-comparison experiments that back the
-  findings page. Preview locally with
-  `python -m http.server 4173 --directory public`.
+- `site/` — source for the GitHub Pages site (React + Vite): four pages —
+  home, concepts (boolean calculus, the State&rarr;State shape, each
+  instrument, all with live in-browser demos), findings (confidence-labeled
+  results with live-recomputed charts), and explorer (a card-based tool for
+  composing the instruments yourself, 1D or 2D). `site/src/lib/groovy-engine.js`
+  is the client-side reimplementation of `src/groovy/*.py` — keep them in
+  sync. Dev server: `npm run dev --prefix site`; build:
+  `npm run build --prefix site` (outputs to `public/`).
+- `public/` — **generated** by the `site/` build, gitignored, deployed to
+  GitHub Pages by `.github/workflows/pages.yml`. Don't edit directly. The
+  handful of static figures the pages embed (e.g. the full 256×256 regime
+  heatmap) live in `site/public/assets/img/` and are produced by
+  `scripts/build_findings_assets.py`.
 
 ## Setup
 
@@ -59,7 +65,11 @@ divergence_stats(field)   # structured, persistent disagreement -- not noise, no
 
 ## Status
 Full 256-rule, 32,640-pair exhaustive sweep complete (5 seeds/pair) — see
-`results/` and `CLAUDE.md`. Current open threads: validating the
-provisional regime-classification thresholds against the real
-compressibility distribution, and the new instruments (absential view,
-second-order memory, meta-evolution) described in `NOTES.md` section 6.
+`results/` and `CLAUDE.md`. The public site (`site/`) has been redesigned
+into four pages including a new interactive Explorer, per
+`DESIGN_BRIEF.md` / `INTERACTIVE_EXPLORER_SPEC.md`. Current open threads:
+validating the provisional regime-classification thresholds against the
+real compressibility distribution, extending `groovy-engine.js`'s 2D CA
+support back into `src/groovy/` (see that file's own module docstring),
+and the new instruments (absential view, second-order memory,
+meta-evolution) described in `NOTES.md` section 6.
