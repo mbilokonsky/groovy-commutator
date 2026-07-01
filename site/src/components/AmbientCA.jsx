@@ -3,53 +3,38 @@ import { useEffect, useRef } from 'react';
 // Decorative, non-interactive CA visuals -- no controls, just something
 // alive on the page. Real interaction lives in the Explorer.
 
-const RULE_CYCLE_1D = [110, 54, 30, 90, 184];
-
-export function AmbientCA1D({ size = 420 }) {
-  const canvasRef = useRef(null);
+// Static, one-shot grid of space-time diagrams -- same rules as the
+// Concepts page's quick-pick list, one shared random starting row, each
+// rendered once in its own color. Deliberately not animated: a looping
+// visual reads as decoration, a fixed grid reads as "here's the range of
+// what these rules do."
+export function StaticRuleGrid({ rules, size = 220, n = 90, steps = 90, seed = 3 }) {
+  const canvasRefsRef = useRef(rules.map(() => ({ current: null })));
 
   useEffect(() => {
     let cancelled = false;
-    let timer;
     import('../lib/groovy-engine.js').then((engine) => {
-      if (cancelled || !canvasRef.current) return;
-      const n = 140, rows = 140;
-      const canvas = canvasRef.current;
-      canvas.width = n;
-      canvas.height = rows;
-      const ctx = canvas.getContext('2d');
-      let ruleIdx = 0;
-      let state, row, rule;
-
-      function restart() {
-        rule = RULE_CYCLE_1D[ruleIdx % RULE_CYCLE_1D.length];
-        ruleIdx++;
-        state = engine.randomState(n, Math.floor(Math.random() * 1e9));
-        row = 0;
-        ctx.fillStyle = '#f1ead9';
-        ctx.fillRect(0, 0, n, rows);
-      }
-      restart();
-
-      function tick() {
-        if (cancelled) return;
-        if (row >= rows) restart();
-        ctx.fillStyle = '#2a2420';
-        for (let i = 0; i < n; i++) if (state[i]) ctx.fillRect(i, row, 1, 1);
-        state = engine.applyRule(state, rule);
-        row++;
-        timer = setTimeout(tick, 45);
-      }
-      tick();
+      if (cancelled) return;
+      const s0 = engine.randomState(n, seed);
+      rules.forEach((r, i) => {
+        const field = engine.evolveTrajectory(s0, r.num, steps);
+        const canvas = canvasRefsRef.current[i].current;
+        if (canvas) engine.renderFieldToCanvas(canvas, field, r.color, '#f1ead9');
+      });
     });
-    return () => { cancelled = true; clearTimeout(timer); };
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      style={{ width: '100%', maxWidth: size, height: 'auto', aspectRatio: '1', imageRendering: 'pixelated', border: '1px solid var(--rule)', borderRadius: 10, background: 'var(--bg-alt)', display: 'block', margin: '0 auto' }}
-    />
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(${Math.min(size, 150)}px, ${size}px))`, gap: '1rem', justifyContent: 'center' }}>
+      {rules.map((r, i) => (
+        <div key={r.num}>
+          <canvas className="gc-field" ref={canvasRefsRef.current[i]} style={{ width: '100%', height: 'auto', aspectRatio: '1' }}></canvas>
+          <div className="gc-mono" style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', marginTop: '0.3rem', textAlign: 'center' }}>rule {r.num}</div>
+        </div>
+      ))}
+    </div>
   );
 }
 

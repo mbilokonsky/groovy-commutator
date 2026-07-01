@@ -342,7 +342,7 @@ export default function Questions() {
         >
           <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', margin: '0 0 1rem' }}>
             Hypothesis: cells that are off-but-adjacent-to-alive (the absential field, see Concepts) might compress
-            in a more class-discriminating way than raw state. One canonical rule per Wolfram class, published
+            in a more class-discriminating way than the base state, E(S). One canonical rule per Wolfram class, published
             numbers (zlib) alongside a live recomputation in your browser right now (deflate &mdash; same shape of
             metric, different compressor, so don't expect the two columns to match exactly):
           </p>
@@ -371,7 +371,7 @@ export default function Questions() {
           </div>
           <p style={{ fontSize: '0.88rem', color: 'var(--ink-soft)', margin: '1rem 0 0' }}>
             <strong style={{ color: 'var(--ink)' }}>What this says:</strong> not from this test. The absential field
-            tracks the raw state's compressibility closely in every case, consistently a little more compressible,
+            tracks E(S)'s compressibility closely in every case, consistently a little more compressible,
             never dramatically so. Four rules is a thin sample, and elementary CA don't really have the kind of
             persistent localized structures (gliders, still lifes) the hypothesis was framed around &mdash; a fairer
             test would use 2D automata with known stable structures, like Conway's Life.
@@ -404,6 +404,35 @@ export default function Questions() {
             rule &mdash; would give the rule-field the same shape as the state itself, and trace back to von
             Neumann's self-reproducing automaton (construction instructions stored as patterns in the same substrate
             they act on). Not implemented anywhere in this project yet.
+          </p>
+        </QuestionCard>
+
+        <QuestionCard
+          id="extended-neighborhoods"
+          q="What if a rule's neighborhood could include cells from a different layer, not just adjacent cells in the same state?"
+          status="open" statusLabel="Open — not implemented"
+        >
+          <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', margin: '0 0 1rem' }}>
+            Everything that composes two fields on this site &mdash; D, reversible memory, Comparison, Coupling
+            &mdash; does it the same way: compute each field independently, then XOR or compare the finished
+            results. Call that <strong>post-hoc composition</strong>. It's a real, useful move, but it's not the only
+            one available.
+          </p>
+          <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', margin: '0 0 1rem' }}>
+            <strong>Pre-hoc composition</strong> would be different in kind: let a rule's own lookup table take a
+            cell from another layer &mdash; D(S)<sub>i</sub>, A(S)<sub>i</sub>, even another rule's current state
+            &mdash; as a fourth input, alongside the usual three spatial neighbors, before &phi; is ever evaluated.
+            Adding one binary input doubles the table (8 rows &rarr; 16), but it's a qualitatively new kind of rule:
+            one whose next-state decision is sensitive to something other-than-spatial &mdash; a derivative, an
+            absential field, a second rule's own trajectory &mdash; as a first-class neighbor.
+          </p>
+          <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', margin: 0 }}>
+            This isn't just a variant of Coupling. Coupling compares two black-box rules' outputs after the fact;
+            this would change what a single rule is a function of. Coupling could probably be reconstructed as a
+            degenerate case of it (a rule whose 4th input happens to be "the other rule's current state"), but not
+            the other way around &mdash; which suggests it's the more general mechanism, not a special case of an
+            existing one. Not implemented anywhere in this project yet: no rule-table representation here supports
+            more than 3 inputs.
           </p>
         </QuestionCard>
       </main>

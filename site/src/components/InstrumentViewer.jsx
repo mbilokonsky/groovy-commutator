@@ -1,15 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 
+const OVERLAP_COLOR = 'oklch(0.6 0.28 340)'; // vivid magenta -- not used elsewhere on the site, so it reads unambiguously as "more than one layer lit here"
+
 // Read-only, light-themed viewer for a fixed set of State -> State fields:
 // side-by-side or a mix-blend-mode overlay, using the same rendering
 // primitives as the Explorer (renderFieldToCanvas / renderFieldToCanvasTransparent).
 // Deliberately no card CRUD here -- these are fixed pedagogical examples,
 // not an editable graph. `multiply` (not the Explorer's `screen`) because
 // this site is light-on-dark there and dark-on-light here.
-export default function InstrumentViewer({ items, exploreHref, size = 150 }) {
+export default function InstrumentViewer({ items, exploreHref, size = 220 }) {
   const [mode, setMode] = useState('side');
+  const [hidden, setHidden] = useState(() => new Set());
   const engineRef = useRef(null);
   const canvasRefsRef = useRef([]);
+  const overlapRef = useRef(null);
   if (canvasRefsRef.current.length !== items.length) {
     canvasRefsRef.current = items.map(() => ({ current: null }));
   }
@@ -27,6 +31,14 @@ export default function InstrumentViewer({ items, exploreHref, size = 150 }) {
 
   useEffect(() => { draw(); });
 
+  function toggleHidden(label) {
+    setHidden((h) => {
+      const next = new Set(h);
+      if (next.has(label)) next.delete(label); else next.add(label);
+      return next;
+    });
+  }
+
   function draw() {
     const engine = engineRef.current;
     if (!engine) return;
@@ -34,9 +46,34 @@ export default function InstrumentViewer({ items, exploreHref, size = 150 }) {
     items.forEach((item, i) => {
       const canvas = canvasRefsRef.current[i].current;
       if (!canvas || !item.field) return;
-      if (isSuper) engine.renderFieldToCanvasTransparent(canvas, item.field, item.color);
-      else engine.renderFieldToCanvas(canvas, item.field, item.color, '#f1ead9');
+      const isVisible = !hidden.has(item.label);
+      if (isSuper) {
+        if (isVisible) engine.renderFieldToCanvasTransparent(canvas, item.field, item.color);
+        else { canvas.width = item.field[0].length; canvas.height = item.field.length; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
+      } else {
+        engine.renderFieldToCanvas(canvas, item.field, item.color, '#f1ead9');
+      }
     });
+
+    if (isSuper && overlapRef.current) {
+      const visibleFields = items.filter((it) => !hidden.has(it.label) && it.field).map((it) => it.field);
+      const canvas = overlapRef.current;
+      if (visibleFields.length < 2) {
+        canvas.getContext('2d').clearRect(0, 0, canvas.width || 1, canvas.height || 1);
+      } else {
+        const steps = visibleFields[0].length, n = visibleFields[0][0].length;
+        const overlapField = Array.from({ length: steps }, (_, t) => {
+          const row = new Uint8Array(n);
+          for (let i = 0; i < n; i++) {
+            let count = 0;
+            for (const f of visibleFields) if (f[t][i]) count++;
+            row[i] = count >= 2 ? 1 : 0;
+          }
+          return row;
+        });
+        engine.renderFieldToCanvasTransparent(canvas, overlapField, OVERLAP_COLOR);
+      }
+    }
   }
 
   const isSuper = mode === 'super';
@@ -59,12 +96,19 @@ export default function InstrumentViewer({ items, exploreHref, size = 150 }) {
 
       {!isSuper && (
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          {items.map((item, i) => (
-            <div key={item.label} style={{ width: size }}>
-              <canvas className="gc-field" ref={canvasRefsRef.current[i]} style={{ width: '100%', height: 'auto', aspectRatio: '1' }}></canvas>
-              <div className="gc-mono" style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', marginTop: '0.3rem' }}>{item.label}</div>
-            </div>
-          ))}
+          {items.map((item, i) => {
+            const isVisible = !hidden.has(item.label);
+            return (
+              <div key={item.label} style={{ width: size, opacity: isVisible ? 1 : 0.35 }}>
+                {isVisible
+                  ? <canvas className="gc-field" ref={canvasRefsRef.current[i]} style={{ width: '100%', height: 'auto', aspectRatio: '1' }}></canvas>
+                  : <div style={{ width: '100%', aspectRatio: '1', border: '1px dashed var(--rule)', borderRadius: 6, background: 'var(--bg-alt)' }}></div>}
+                <button onClick={() => toggleHidden(item.label)} className="gc-mono" style={{ display: 'flex', alignItems: 'center', gap: '0.35em', fontSize: '0.7rem', color: 'var(--ink-soft)', marginTop: '0.3rem', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 2, background: item.color, flex: 'none' }}></span>{item.label}
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -74,13 +118,20 @@ export default function InstrumentViewer({ items, exploreHref, size = 150 }) {
             {items.map((item, i) => (
               <canvas key={item.label} className="gc-field" ref={canvasRefsRef.current[i]} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', borderRadius: 0, background: 'transparent', mixBlendMode: 'multiply' }}></canvas>
             ))}
+            <canvas ref={overlapRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', borderRadius: 0, background: 'transparent', mixBlendMode: 'multiply', imageRendering: 'pixelated' }}></canvas>
           </div>
           <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
-            {items.map((item) => (
-              <div key={item.label} className="gc-mono" style={{ display: 'flex', alignItems: 'center', gap: '0.35em', fontSize: '0.72rem', color: 'var(--ink-soft)' }}>
-                <span style={{ width: 8, height: 8, borderRadius: 2, background: item.color }}></span>{item.label}
-              </div>
-            ))}
+            {items.map((item) => {
+              const isVisible = !hidden.has(item.label);
+              return (
+                <button key={item.label} onClick={() => toggleHidden(item.label)} className="gc-mono" style={{ display: 'flex', alignItems: 'center', gap: '0.35em', fontSize: '0.72rem', color: isVisible ? 'var(--ink-soft)' : 'var(--rule)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 2, background: item.color, opacity: isVisible ? 1 : 0.3, flex: 'none' }}></span>{item.label}
+                </button>
+              );
+            })}
+            <div className="gc-mono" style={{ display: 'flex', alignItems: 'center', gap: '0.35em', fontSize: '0.72rem', color: 'var(--ink-soft)' }}>
+              <span style={{ width: 8, height: 8, borderRadius: 2, background: OVERLAP_COLOR, flex: 'none' }}></span>2+ layers here
+            </div>
           </div>
         </>
       )}

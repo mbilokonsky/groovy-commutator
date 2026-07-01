@@ -10,14 +10,28 @@ import { buildSeedUrl } from '../lib/exploreSeed.js';
 // once they land there.
 const EXPLORE_COLORS = { cream: 'oklch(0.94 0.02 90)', teal: 'oklch(0.72 0.1 195)', amber: 'oklch(0.72 0.14 75)', purple: 'oklch(0.7 0.13 300)', red: 'oklch(0.66 0.15 22)' };
 
+// Consistent "symbol — role" labels for every viewer across this page.
+const L_E = 'E(S) — base state';
+const L_D = 'D(S) — derivative';
+const L_D2 = 'D²(S) — 2nd derivative';
+const L_DE = 'D(E(S)) — evolve-then-differentiate';
+const L_ED = 'E(D(S)) — differentiate-then-evolve';
+const L_G = 'G(S) — commutator';
+const L_A = 'A(S) — absential';
+const L_V = 'V(S) — void';
+
 function defaultInitState(n) {
   const arr = new Array(n).fill(0);
   arr[Math.floor(n / 2)] = 1;
   return arr;
 }
 
-const N_CELLS = 70;
-const STEPS = 70;
+// Deliberately low-res: every canvas on this page is CSS-scaled up to a
+// fixed display size (see InstrumentViewer / gc-field's image-rendering:
+// pixelated), so fewer cells means bigger, more legible pixels -- the
+// Explorer keeps a much finer 100x100 grid for actual exploration.
+const N_CELLS = 24;
+const STEPS = 24;
 const ON_COLOR = '#2a2420';
 const OFF_COLOR = '#fbfaf7';
 const ACCENT = 'oklch(0.5 0.1 195)';
@@ -60,15 +74,6 @@ const TOC = [
   ['#absential', 'Absential cells'],
   ['#secondorder', 'Reversible memory'],
   ['#coupling', 'Coupling rules'],
-  ['#metaevo', 'Rules birthing rules'],
-  ['#open', 'Open questions'],
-];
-
-const OPEN_QUESTIONS = [
-  ['What exactly predicts drain?', 'image_ratio correlates but doesn’t fully explain it — the real condition looks more structural than a single score.'],
-  ['Does the absential view detect Class IV?', 'First test was inconclusive — open whether a better test (2D, more rules) changes that.'],
-  ['Does generator choice change meta-evolution?', 'Early evidence says yes — richer generators search longer — on a small sample.'],
-  ['Could "rule" live in the same shape as state?', 'Non-uniform CA — one rule per cell — traces to von Neumann. Not implemented here yet.'],
 ];
 
 const pill = { fontFamily: "'IBM Plex Mono',monospace", fontSize: '0.76rem', fontWeight: 600, textDecoration: 'none', background: 'var(--bg-alt)', color: 'var(--ink-soft)', padding: '0.35rem 0.7rem', borderRadius: 999 };
@@ -136,8 +141,6 @@ export default function Concepts() {
   const engineRef = useRef(null);
   const sentinelRef = useRef(null);
   const caRef = useRef(null);
-  const caRef2 = useRef(null);
-  const dRef = useRef(null);
   const secondOrderRef = useRef(null);
   const pairRef = useRef(null);
 
@@ -169,21 +172,27 @@ export default function Concepts() {
   // ---- redraw single-rule views whenever rule or initState changes ----
   useEffect(() => {
     if (!engineReady) return;
-    const { evolveTrajectory, dTrajectory, d2Trajectory, gTrajectory, absentialTrajectory,
-      runSecondOrder, verifySecondOrderReversible, renderFieldToCanvas } = engineRef.current;
+    const { evolveTrajectory, dTrajectory, d2Trajectory, gTrajectory, deTrajectory, edTrajectory,
+      absentialTrajectory, runSecondOrder, verifySecondOrderReversible, renderFieldToCanvas } = engineRef.current;
     const s0 = Uint8Array.from(initState);
 
     const raw = evolveTrajectory(s0, rule, STEPS);
     if (caRef.current) renderFieldToCanvas(caRef.current, raw, ON_COLOR, '#f1ead9');
-    if (caRef2.current) renderFieldToCanvas(caRef2.current, raw, ON_COLOR, '#f1ead9');
 
     const dField = dTrajectory(s0, rule, STEPS);
-    if (dRef.current) renderFieldToCanvas(dRef.current, dField, ACCENT, '#f1ead9');
-
     const d2Field = d2Trajectory(s0, rule, STEPS);
     const gField = gTrajectory(s0, rule, STEPS);
+    const deField = deTrajectory(s0, rule, STEPS);
+    const edField = edTrajectory(s0, rule, STEPS);
     const absField = absentialTrajectory(s0, rule, STEPS);
-    setComputed({ raw, d: dField, d2: d2Field, g: gField, absential: absField });
+    // V(S) = NOT(S OR A(S)) -- void is whatever's left once live and
+    // absential cells are accounted for (see the partition note below).
+    const voidField = raw.map((row, t) => {
+      const out = new Uint8Array(row.length);
+      for (let i = 0; i < row.length; i++) out[i] = (row[i] || absField[t][i]) ? 0 : 1;
+      return out;
+    });
+    setComputed({ raw, d: dField, d2: d2Field, g: gField, de: deField, ed: edField, absential: absField, void: voidField });
 
     const soTraj = runSecondOrder(s0, s0, rule, STEPS);
     if (secondOrderRef.current) renderFieldToCanvas(secondOrderRef.current, soTraj, 'oklch(0.5 0.12 230)', '#f1ead9');
@@ -383,7 +392,7 @@ export default function Concepts() {
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.4rem', flexWrap: 'wrap' }}>
               <div>
                 <canvas className="gc-field" ref={caRef}></canvas>
-                <div className="gc-mono" style={{ fontSize: '0.72rem', color: 'var(--ink-soft)', marginTop: '0.4rem', maxWidth: 160 }}>raw evolution, Rule {rule}</div>
+                <div className="gc-mono" style={{ fontSize: '0.72rem', color: 'var(--ink-soft)', marginTop: '0.4rem', maxWidth: 160 }}>E(S), Rule {rule}</div>
               </div>
               <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', maxWidth: '42ch', margin: 0 }}>
                 This is the same rule-number/lookup-table system as the four classes shown earlier, now with a rule
@@ -418,19 +427,19 @@ export default function Concepts() {
             <p style={pBody}>
               <code className="gc-code">C</code> is just XOR again, named for the role it plays: comparing two
               states bit by bit. <code className="gc-code">D</code> uses it to ask the smallest possible question
-              about a rule &mdash; compare the state to what the rule turns it into, one step later. Raw state and
+              about a rule &mdash; compare the state to what the rule turns it into, one step later. Base state and
               D(S), for Rule {rule}:
             </p>
-            <div className="gc-lens-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '1rem', maxWidth: 420 }}>
-              <div>
-                <canvas className="gc-field" ref={caRef2} style={{ width: '100%', height: 'auto', aspectRatio: '1' }}></canvas>
-                <div className="gc-mono" style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', marginTop: '0.3rem' }}>raw state</div>
-              </div>
-              <div>
-                <canvas className="gc-field" ref={dRef} style={{ width: '100%', height: 'auto', aspectRatio: '1' }}></canvas>
-                <div className="gc-mono" style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', marginTop: '0.3rem' }}>D(S)</div>
-              </div>
-            </div>
+            <InstrumentViewer
+              items={[
+                { label: L_E, field: computed && computed.raw, color: ON_COLOR },
+                { label: L_D, field: computed && computed.d, color: ACCENT },
+              ]}
+              exploreHref={buildSeedUrl([
+                { id: 1, type: 'source', dim: '1d', rule, ic: initState, steps: STEPS, color: EXPLORE_COLORS.cream },
+                { id: 2, type: 'transform', dim: '1d', from: 1, op: 'd', rule, color: EXPLORE_COLORS.teal },
+              ])}
+            />
 
             <h3 style={h3Style}>Integration, and why evolution is Euler's method in disguise</h3>
             <div style={formulaBlock}>
@@ -487,13 +496,13 @@ export default function Concepts() {
             </div>
             <p style={pBody}>
               The obvious next move once <code className="gc-code">D</code> exists: apply it to its own output,
-              under the same rule. Raw state, D(S), and D&sup2;(S), for Rule {rule}:
+              under the same rule. Base state, D(S), and D&sup2;(S), for Rule {rule}:
             </p>
             <InstrumentViewer
               items={[
-                { label: 'raw state', field: computed && computed.raw, color: ON_COLOR },
-                { label: 'D(S)', field: computed && computed.d, color: ACCENT },
-                { label: 'D²(S)', field: computed && computed.d2, color: 'oklch(0.55 0.14 30)' },
+                { label: L_E, field: computed && computed.raw, color: ON_COLOR },
+                { label: L_D, field: computed && computed.d, color: ACCENT },
+                { label: L_D2, field: computed && computed.d2, color: 'oklch(0.55 0.14 30)' },
               ]}
               exploreHref={buildSeedUrl([
                 { id: 1, type: 'source', dim: '1d', rule, ic: initState, steps: STEPS, color: EXPLORE_COLORS.cream },
@@ -503,7 +512,7 @@ export default function Concepts() {
             />
             <p style={{ ...pBody, marginTop: '1.1rem' }}>
               Read the teal panel as "which cells are about to change" &mdash; it's <code className="gc-code">D(S)</code>,
-              the difference between the raw state and what the rule turns it into next. The red panel is the same
+              the difference between E(S) and what the rule turns it into next. The red panel is the same
               question asked one level up: treat <em>that</em> difference field as a state in its own right, and ask
               which of <em>its</em> cells are about to change under the same rule. Not a property of the original
               state directly &mdash; a property of how the state is changing.
@@ -517,10 +526,13 @@ export default function Concepts() {
               <div>G(S) = C(D(E(S)), E(D(S)))</div>
             </div>
             <p style={pBody}>
-              Differentiate-then-evolve, compared against evolve-then-differentiate: does order agree? Same
+              Evolve-then-differentiate (<code className="gc-code">D(E(S))</code>), compared against
+              differentiate-then-evolve (<code className="gc-code">E(D(S))</code>): does order agree? Same
               construction as the commutator <code className="gc-code">[A,B] = AB - BA</code> from ordinary
               algebra &mdash; does applying two operations one way give the same result as applying them the other
-              way.
+              way. Neither of those two fields is the same as the plain <code className="gc-code">D(S)</code> from
+              the section above &mdash; both route through a second operation first, so the teal and amber panels
+              below are already a step more computed than "which cells are about to change."
             </p>
             <p style={pBody}>
               <strong>The affine theorem:</strong> G(S) is the same for every possible S, forever, if and only if
@@ -529,18 +541,33 @@ export default function Concepts() {
                 : isAffine ? 'this rule is GF(2)-affine — G is the same constant for every state, every step.'
                 : 'this rule is not affine — G is not constant; watch the strip below churn.'}
             </p>
+            <p style={pBody}>
+              Worth flipping through the quick-pick rules above and watching what happens to the purple panel: rule{' '}
+              90 is affine with no bias, so G(S) goes flat black &mdash; confirms the theorem directly, even though
+              the teal and amber panels feeding into it are each still churning on their own. Rule 30 (class III)
+              makes G(S) churn with no visible structure. Rule 110 or 54 (class IV) is the interesting middle case:
+              G(S) is neither constant nor noise, it has visible structure of its own. Rules 4 and 184 (class II)
+              tend to settle into something periodic. Same four panels, four qualitatively different stories, just
+              by changing the rule number.
+            </p>
             <InstrumentViewer
               items={[
-                { label: 'raw state', field: computed && computed.raw, color: ON_COLOR },
-                { label: 'D(S)', field: computed && computed.d, color: ACCENT },
-                { label: 'G(S)', field: computed && computed.g, color: 'oklch(0.5 0.13 300)' },
+                { label: L_E, field: computed && computed.raw, color: ON_COLOR },
+                { label: L_DE, field: computed && computed.de, color: ACCENT },
+                { label: L_ED, field: computed && computed.ed, color: 'oklch(0.6 0.14 75)' },
+                { label: L_G, field: computed && computed.g, color: 'oklch(0.5 0.13 300)' },
               ]}
               exploreHref={buildSeedUrl([
                 { id: 1, type: 'source', dim: '1d', rule, ic: initState, steps: STEPS, color: EXPLORE_COLORS.cream },
-                { id: 2, type: 'transform', dim: '1d', from: 1, op: 'd', rule, color: EXPLORE_COLORS.teal },
-                { id: 3, type: 'transform', dim: '1d', from: 1, op: 'g', rule, color: EXPLORE_COLORS.purple },
+                { id: 2, type: 'transform', dim: '1d', from: 1, op: 'g', rule, color: EXPLORE_COLORS.purple },
               ])}
             />
+            <p style={{ ...pBody, fontSize: '0.82rem', marginTop: '0.6rem' }}>
+              <code className="gc-code">D(E(S))</code> and <code className="gc-code">E(D(S))</code> aren't wired
+              into the explorer's transform menu as standalone fields yet &mdash; it has no "evolve only" transform,
+              just <code className="gc-code">raw</code> (identity), <code className="gc-code">d</code>, and{' '}
+              <code className="gc-code">g</code> &mdash; so the link below carries S and G(S) only.
+            </p>
           </section>
 
           <section id="absential" style={{ padding: '1.6rem 0', borderTop: '1px solid var(--rule)' }}>
@@ -560,11 +587,17 @@ export default function Concepts() {
             <div style={formulaBlock}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', margin: '0.15em 0' }}><span>N(S) = S &or; left(S) &or; right(S)</span><span style={{ color: 'var(--ink-soft)', fontSize: '0.7rem' }}>closed neighborhood</span></div>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', margin: '0.15em 0' }}><span>A(S) = N(S) &and; &not;S</span><span style={{ color: 'var(--ink-soft)', fontSize: '0.7rem' }}>absential field</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', margin: '0.15em 0' }}><span>V(S) = &not;N(S) = &not;S &and; &not;A(S)</span><span style={{ color: 'var(--ink-soft)', fontSize: '0.7rem' }}>void field</span></div>
             </div>
+            <p style={pBody}>
+              S, A(S), and V(S) partition every cell into exactly one of three categories &mdash; live, absential, or
+              void &mdash; with no overlap and nothing left over.
+            </p>
             <InstrumentViewer
               items={[
-                { label: 'raw state, S', field: computed && computed.raw, color: ON_COLOR },
-                { label: 'A(S)', field: computed && computed.absential, color: 'oklch(0.6 0.14 75)' },
+                { label: L_E, field: computed && computed.raw, color: ON_COLOR },
+                { label: L_A, field: computed && computed.absential, color: 'oklch(0.6 0.14 75)' },
+                { label: L_V, field: computed && computed.void, color: 'oklch(0.6 0.13 240)' },
               ]}
               exploreHref={buildSeedUrl([
                 { id: 1, type: 'source', dim: '1d', rule, ic: initState, steps: STEPS, color: EXPLORE_COLORS.cream },
@@ -572,12 +605,14 @@ export default function Concepts() {
               ])}
             />
             <p style={{ ...pBody, marginTop: '1.1rem' }}>
-              Overlay mode is worth trying here specifically: S and A(S) are never on at the same cell by
-              construction, so the overlay shows them filling in the space around each other, never colliding.
+              Overlay mode is worth trying here specifically: all three fields are mutually exclusive by
+              construction, so a correct overlay should show zero magenta (the 2+ layers highlight) anywhere on the
+              grid &mdash; toggle layers off and on to check it. <code className="gc-code">V(S)</code> isn't wired
+              into the explorer's transform menu yet, so the link below carries S and A(S) only.
             </p>
             <p style={{ fontSize: '0.92rem', color: 'var(--ink-soft)', maxWidth: '60ch', margin: 0 }}>
               Open question this raises: does this field's own compressibility work as a faster Class-IV detector
-              than looking at G or the raw state? First test didn't confirm it &mdash; see the{' '}
+              than looking at G(S) or E(S) directly? First test didn't confirm it &mdash; see the{' '}
               <a href="questions.html#absential" style={{ color: 'var(--accent)' }}>questions page</a>.
             </p>
           </section>
@@ -589,9 +624,11 @@ export default function Concepts() {
               S(t+1) = &phi;(S(t)) &oplus; S(t&minus;1)
             </div>
             <p style={pBody}>
-              Because XOR is its own inverse, this recurrence run backward exactly recovers every earlier state
-              &mdash; the standard Margolus&ndash;Fredkin trick for giving 1D CA memory and reversibility at once,
-              for <em>any</em> rule &mdash; not just famous ones.
+              A different shape of the same underlying move as comparison and coupling: compute two things
+              separately, then XOR them together. Here the two things are the rule's ordinary output and a
+              time-shifted copy of the same layer, one step back &mdash; and because XOR is its own inverse, running
+              the recurrence backward exactly recovers every earlier state. That's the standard Margolus&ndash;Fredkin
+              trick for giving 1D CA memory and reversibility at once, for <em>any</em> rule, not just famous ones.
             </p>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.4rem', flexWrap: 'wrap' }}>
               <div>
@@ -644,35 +681,14 @@ export default function Concepts() {
           </p>
         </section>
 
-        {/* META EVOLUTION */}
-        <section id="metaevo" style={{ padding: '1.6rem 0', borderTop: '1px solid var(--rule)' }}>
-          <div style={sectionKicker}>Instrument &mdash; newest, most speculative</div>
-          <h2 style={h2Style}>Rules birthing rules</h2>
-          <p style={{ fontSize: '0.98rem', color: 'var(--ink-soft)', margin: 0, maxWidth: '60ch' }}>
-            Instead of fixing one rule and watching a state evolve, let the state <em>generate its own successor
-            rule</em> each generation, classify the parent&rarr;child handoff with the same five-regime diagnostic
-            above, then hand control to the child. Lineages reliably wander for a few generations, then lock into a
-            small repeating cycle in rule space itself &mdash; see the{' '}
-            <a href="questions.html#meta-evolution" style={{ color: 'var(--accent)' }}>questions page</a> for a live
-            version of this you can re-run yourself.
-          </p>
-        </section>
-
-        {/* OPEN QUESTIONS */}
-        <section id="open" style={{ padding: '1.6rem 0 2rem', borderTop: '1px solid var(--rule)' }}>
-          <div style={sectionKicker}>Where the curiosity is pointed right now</div>
-          <h2 style={{ ...h2Style, margin: '0.3em 0 0.9em' }}>Open questions</h2>
+        {/* CLOSING POINTER -- questions (incl. rules birthing rules, and everything still open) live on their own page now */}
+        <section style={{ padding: '1.6rem 0 2rem', borderTop: '1px solid var(--rule)' }}>
           <p style={pBody}>
-            A quick preview &mdash; the <a href="questions.html" style={{ color: 'var(--accent)' }}>questions page</a>{' '}
-            covers these (and the ones we do have data for) properly.
+            That's the instrument set built on this calculus so far. What happens when you push them further
+            &mdash; a state that generates its own successor rule, what actually predicts the drain regime, whether
+            a rule could live in the same shape as the data it acts on &mdash; is exactly what the{' '}
+            <a href="questions.html" style={{ color: 'var(--accent)' }}>questions page</a> is for.
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '0.8rem' }}>
-            {OPEN_QUESTIONS.map(([title, body]) => (
-              <div key={title} style={{ background: '#fff', border: '1px solid var(--rule)', borderRadius: 8, padding: '0.9rem 1rem' }}>
-                <p style={{ fontSize: '0.88rem', margin: 0, color: 'var(--ink-soft)' }}><strong style={{ color: 'var(--ink)' }}>{title}</strong> {body}</p>
-              </div>
-            ))}
-          </div>
         </section>
 
       </main>

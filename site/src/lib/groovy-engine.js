@@ -139,6 +139,30 @@ export function gTrajectory(state0, ruleNum, steps) {
   return field;
 }
 
+// The two things G actually XORs together -- D(E(S)) (differentiate after
+// evolving) and E(D(S)) (evolve after differentiating), one per time step.
+// Neither equals the plain D(S) trajectory above: D(E(S)) = phi(S) XOR
+// phi(phi(S)), a different field entirely.
+export function deTrajectory(state0, ruleNum, steps) {
+  let state = state0.slice();
+  const field = [];
+  for (let t = 0; t < steps; t++) {
+    field.push(D(E(state, ruleNum), ruleNum));
+    state = applyRule(state, ruleNum);
+  }
+  return field;
+}
+
+export function edTrajectory(state0, ruleNum, steps) {
+  let state = state0.slice();
+  const field = [];
+  for (let t = 0; t < steps; t++) {
+    field.push(E(D(state, ruleNum), ruleNum));
+    state = applyRule(state, ruleNum);
+  }
+  return field;
+}
+
 // ---- metrics.py ----
 
 // Cells OFF but within the radius-1 closed neighborhood of an ON cell.

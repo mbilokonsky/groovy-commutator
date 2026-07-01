@@ -1,5 +1,16 @@
 import Nav from './Nav.jsx';
-import { AmbientCA1D } from './AmbientCA.jsx';
+import { StaticRuleGrid } from './AmbientCA.jsx';
+
+// Same rules as the Concepts page's quick-pick list, one color each --
+// reuses the site's established regime hues for visual continuity.
+const SAMPLE_RULES = [
+  { num: 4, color: 'oklch(0.55 0.12 195)' },
+  { num: 184, color: 'oklch(0.58 0.13 150)' },
+  { num: 30, color: 'oklch(0.58 0.13 300)' },
+  { num: 110, color: 'oklch(0.58 0.13 240)' },
+  { num: 54, color: 'oklch(0.6 0.14 75)' },
+  { num: 90, color: 'oklch(0.56 0.15 22)' },
+];
 
 const formulaBlock = { fontFamily: "'IBM Plex Mono',monospace", background: 'var(--bg-alt)', border: '1px solid var(--rule)', padding: '0.9rem 1.1rem', borderRadius: 8, fontSize: '0.86rem', margin: '1.4rem 0' };
 const formulaLine = { display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.4rem 1.5rem', margin: '0.15em 0' };
@@ -14,7 +25,7 @@ export default function Home() {
       <main style={{ maxWidth: 880, margin: '0 auto', padding: '2rem 1.25rem 4rem' }}>
         <section style={{ padding: '1.6rem 0 0.5rem' }}>
           <h1 style={{ fontFamily: "'Lora',serif", fontSize: 'clamp(1.9rem,5vw,2.6rem)', lineHeight: 1.25, margin: '0 0 0.6em', fontWeight: 600, letterSpacing: '-0.01em' }}>
-            A Boolean calculus for cellular automata
+            A New Lens on Cellular Automata
           </h1>
 
           <p style={pBody}>
@@ -28,8 +39,8 @@ export default function Home() {
             <div style={formulaLine}><span>R</span><span style={formulaNote}>the rule, 0&ndash;255</span></div>
             <div style={formulaLine}><span>&phi;(S)<sub>i</sub> = R<sub>4&middot;S(i&minus;1) + 2&middot;S(i) + S(i+1)</sub></span><span style={formulaNote}>one cell's next value</span></div>
             <div style={formulaLine}><span>D(S) = S &oplus; &phi;(S)</span><span style={formulaNote}>what changed</span></div>
-            <div style={formulaLine}><span>I(S) = S &oplus; D(S)</span><span style={formulaNote}>fold it back in</span></div>
-            <div style={formulaLine}><span>E(S) = I(S) = &phi;(S)</span><span style={formulaNote}>derived, not assumed</span></div>
+            <div style={formulaLine}><span>I(a, b) = a &oplus; b</span><span style={formulaNote}>fold a difference back in</span></div>
+            <div style={formulaLine}><span>E(S) = I(S, D(S)) = &phi;(S)</span><span style={formulaNote}>derived, not assumed</span></div>
           </div>
           <p style={{ ...pBody, fontSize: '0.9rem' }}>
             <code style={{ fontFamily: "'IBM Plex Mono',monospace", background: 'var(--bg-alt)', padding: '0.1em 0.4em', borderRadius: 4 }}>&phi;</code>{' '}
@@ -38,7 +49,7 @@ export default function Home() {
             the Concepts page lets you edit by hand.
           </p>
 
-          <AmbientCA1D />
+          <StaticRuleGrid rules={SAMPLE_RULES} />
 
           <p style={{ ...pBody, marginTop: '1.8rem' }}>
             For the longest time I thought of this as just a sort of pedantic expansion of some trivial dynamics
