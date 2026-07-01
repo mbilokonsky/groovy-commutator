@@ -47,7 +47,10 @@ N = 64
 STEPS = 80
 MAX_GENERATIONS = 60
 SEEDS = 40
-CYCLE_WINDOW = 8
+# 16 catches cycles up to period 8 -- the single-rule experiments taught us
+# (the hard way) that period-<=3 detectors misread longer cycles as
+# open-endedness; don't repeat that here
+CYCLE_WINDOW = 16
 
 
 def sample_byte(arr: np.ndarray) -> int:
