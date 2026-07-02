@@ -35,8 +35,16 @@ jobs:
       - run: npm run build
         working-directory: site
       - uses: actions/configure-pages@v5
+      # The artifact is named per run attempt because artifacts from earlier
+      # attempts persist on the run: with a fixed name, any re-run uploads a
+      # second "github-pages" artifact and deploy-pages hard-fails on the
+      # duplicate ("Multiple artifacts named ... found"). Per-attempt names
+      # keep every retry self-contained.
       - uses: actions/upload-pages-artifact@v3
         with:
+          name: github-pages-${{ github.run_attempt }}
           path: public
       - id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
