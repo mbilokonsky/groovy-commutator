@@ -678,7 +678,8 @@ export default function Questions() {
             <strong style={{ color: 'var(--ink)' }}>What this says:</strong> no. Distributions for drain, crystalline,
             and structured overlap heavily &mdash; there's no clean image_ratio threshold that separates them. Two
             rules can share an identical image_ratio and still differ in whether they drain against a third. The
-            real condition is something more structural than a single score &mdash; see the open question below.
+            real condition is something more structural than a single score &mdash; a pair-level property, found and
+            measured in the <a href="#drain-mechanism" style={{ color: 'var(--accent)' }}>drain question below</a>.
           </p>
         </QuestionCard>
 
