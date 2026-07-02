@@ -502,6 +502,197 @@ export function renderGrid2DToCanvas(canvas, grid, colorOn, colorOff) {
   }
 }
 
+// ---- prehoc.py ----
+// 4-input rules: a 16-entry LUT indexed by 8x + 4l + 2c + r, packed into one
+// integer 0..65535. The two 8-entry halves ARE elementary rules -- every
+// 4-input rule is an ordered pair (rule where x=0, rule where x=1), with the
+// fourth input selecting per cell which applies. See src/groovy/prehoc.py
+// for the collapse theorem this mirrors.
+
+export const ABSENTIAL_RULE = 50;   // A(S) = (l|r) & ~c as an elementary rule
+export const CENTER_RULE = 204;     // output = center bit; D(.,psi) == rule (psi ^ 204)
+
+export function rule4FromPair(ruleX0, ruleX1) {
+  return (ruleX1 << 8) | ruleX0;
+}
+
+export function rule4Pair(tableNum) {
+  return [tableNum & 0xff, (tableNum >> 8) & 0xff];
+}
+
+// Post-hoc decomposable (f = g(l,c,r) XOR h(x)) iff the two halves are equal
+// or bitwise complements: 512 of 65,536 tables.
+export function isSeparable4(tableNum) {
+  const [x0, x1] = rule4Pair(tableNum);
+  return x1 === x0 || x1 === (x0 ^ 0xff);
+}
+
+export function rule4LUT(tableNum) {
+  const lut = new Uint8Array(16);
+  for (let i = 0; i < 16; i++) lut[i] = (tableNum >> i) & 1;
+  return lut;
+}
+
+// One synchronous step of a 4-input rule, fourth input supplied as an
+// explicit per-cell field x.
+export function applyRule4(state, x, tableNum) {
+  const n = state.length;
+  const lut = rule4LUT(tableNum);
+  const out = new Uint8Array(n);
+  for (let i = 0; i < n; i++) {
+    const l = state[(i - 1 + n) % n];
+    const c = state[i];
+    const r = state[(i + 1) % n];
+    out[i] = lut[8 * x[i] + 4 * l + 2 * c + r];
+  }
+  return out;
+}
+
+// Collapse theorem: if x = mu(S) for an elementary rule mu (same time, same
+// radius), the 4-input rule IS an elementary rule -- this computes which one.
+export function collapseToElementary(tableNum, muRule) {
+  const lut4 = rule4LUT(tableNum);
+  const mu = ruleLUT(muRule);
+  let eff = 0;
+  for (let idx = 0; idx < 8; idx++) eff |= lut4[8 * mu[idx] + idx] << idx;
+  return eff;
+}
+
+// Two layers, mutually pre-hoc coupled: each step (synchronous), layer A
+// steps by tableA with x = B's current state, and vice versa. This is the
+// construction that escapes the collapse theorem -- the fourth input comes
+// from another trajectory, not the layer's own neighborhood.
+export function coupledTrajectory(stateA0, stateB0, tableA, tableB, steps) {
+  let a = stateA0.slice();
+  let b = stateB0.slice();
+  const fieldA = [], fieldB = [], diff = [];
+  for (let t = 0; t < steps; t++) {
+    fieldA.push(a);
+    fieldB.push(b);
+    diff.push(C(a, b));
+    const nextA = applyRule4(a, b, tableA);
+    const nextB = applyRule4(b, a, tableB);
+    a = nextA; b = nextB;
+  }
+  return { a: fieldA, b: fieldB, diff };
+}
+
+// ---- nonuniform.py ----
+// A rule per cell: the rule field is an (n,)-array of rule numbers living
+// alongside the state -- same shape, same diagnostics. See the Python
+// module for the three regimes (frozen / read-from-state / gated transport)
+// and the radius-4 collapse warning on read-from-state.
+
+export function applyRuleField(state, ruleField) {
+  const n = state.length;
+  const out = new Uint8Array(n);
+  for (let i = 0; i < n; i++) {
+    const l = state[(i - 1 + n) % n];
+    const c = state[i];
+    const r = state[(i + 1) % n];
+    out[i] = (ruleField[i] >> (4 * l + 2 * c + r)) & 1;
+  }
+  return out;
+}
+
+// Cell i's rule number = the byte spelled by the 8 state bits S[i-3..i+4].
+// Composed with applyRuleField this is provably ONE uniform radius-4 CA --
+// kept so the collapse can be demonstrated, not because it escapes it.
+export function readRuleField(state) {
+  const n = state.length;
+  const out = new Array(n).fill(0);
+  for (let i = 0; i < n; i++) {
+    let rule = 0;
+    for (let k = 0; k < 8; k++) rule |= state[(i - 3 + k + 2 * n) % n] << k;
+    out[i] = rule;
+  }
+  return out;
+}
+
+// The honest rule-as-state construction: the rule field persists (its own
+// memory) and the state gates its transport -- a live cell copies its left
+// neighbor's rule over its own; a dead cell keeps its rule. Rules that
+// quiet their host cell are never displaced (the selection effect measured
+// in scripts/experiment_nonuniform.py).
+export function stepGatedDiffusion(state, ruleField) {
+  const n = state.length;
+  const newState = applyRuleField(state, ruleField);
+  const newField = new Array(n);
+  for (let i = 0; i < n; i++) {
+    newField[i] = state[i] === 1 ? ruleField[(i - 1 + n) % n] : ruleField[i];
+  }
+  return [newState, newField];
+}
+
+// Mirror image: live cells pull their RIGHT neighbor's rule (symmetry
+// control -- statistics match the leftward scheme).
+export function stepGatedDiffusionRight(state, ruleField) {
+  const n = state.length;
+  const newState = applyRuleField(state, ruleField);
+  const newField = new Array(n);
+  for (let i = 0; i < n; i++) {
+    newField[i] = state[i] === 1 ? ruleField[(i + 1) % n] : ruleField[i];
+  }
+  return [newState, newField];
+}
+
+// GF(2) recombination: a live cell's rule becomes the XOR of its two
+// neighbors' rules -- can create rule values absent from the initial
+// population, unlike pure transport. Selection pressure (only live cells
+// get overwritten) is unchanged.
+export function stepGatedMix(state, ruleField) {
+  const n = state.length;
+  const newState = applyRuleField(state, ruleField);
+  const newField = new Array(n);
+  for (let i = 0; i < n; i++) {
+    newField[i] = state[i] === 1
+      ? (ruleField[(i - 1 + n) % n] ^ ruleField[(i + 1) % n])
+      : ruleField[i];
+  }
+  return [newState, newField];
+}
+
+const TRANSPORT_SCHEMES = { left: stepGatedDiffusion, right: stepGatedDiffusionRight, mix: stepGatedMix };
+
+export function gatedDiffusionTrajectory(state0, ruleField0, steps, scheme = 'left') {
+  const stepFn = TRANSPORT_SCHEMES[scheme];
+  let s = state0.slice();
+  let f = ruleField0.slice();
+  const states = [], rules = [], distinct = [];
+  for (let t = 0; t < steps; t++) {
+    states.push(s);
+    rules.push(f);
+    distinct.push(new Set(f).size);
+    [s, f] = stepFn(s, f);
+  }
+  return { states, rules, distinct };
+}
+
+// Renders a byte-valued field (e.g. a rule-field trajectory, values 0-255)
+// one pixel per cell, mapping the byte through a two-hue gradient keyed to
+// the byte's popcount-ish magnitude. Rendering-only helper, no Python twin.
+export function renderByteFieldToCanvas(canvas, field, alphaByte = null) {
+  const steps = field.length;
+  const n = field[0].length;
+  canvas.width = n;
+  canvas.height = steps;
+  const ctx = canvas.getContext('2d');
+  const img = ctx.createImageData(n, steps);
+  for (let t = 0; t < steps; t++) {
+    for (let i = 0; i < n; i++) {
+      const v = field[t][i];
+      const o = (t * n + i) * 4;
+      // hash the byte to a stable color so each rule value reads as its
+      // own contiguous territory in the picture
+      img.data[o] = 40 + ((v * 97) % 200);
+      img.data[o + 1] = 60 + ((v * 57) % 160);
+      img.data[o + 2] = 90 + ((v * 31) % 140);
+      img.data[o + 3] = alphaByte === null ? 255 : alphaByte;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
 // ---- metaevolution.py ----
 
 export function populationCountGenerator(state) {

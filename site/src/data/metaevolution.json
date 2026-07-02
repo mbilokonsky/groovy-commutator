@@ -1,0 +1,52 @@
+{
+ "n": 64,
+ "max_generations": 60,
+ "steps": 80,
+ "seeds": 40,
+ "start_rules": [
+  90
+ ],
+ "cycle_window": 12,
+ "generators": [
+  {
+   "generator": "population_count",
+   "lockin_rate": 1.0,
+   "mean_generations": 11.22,
+   "ci_low": 9.8,
+   "ci_high": 12.75,
+   "n_lineages": 40
+  },
+  {
+   "generator": "absential_count",
+   "lockin_rate": 1.0,
+   "mean_generations": 7.15,
+   "ci_low": 6.08,
+   "ci_high": 8.38,
+   "n_lineages": 40
+  },
+  {
+   "generator": "g90_popcount (degenerate)",
+   "lockin_rate": 1.0,
+   "mean_generations": 2.0,
+   "ci_low": 2.0,
+   "ci_high": 2.0,
+   "n_lineages": 40
+  },
+  {
+   "generator": "g30_popcount",
+   "lockin_rate": 1.0,
+   "mean_generations": 6.1,
+   "ci_low": 5.2,
+   "ci_high": 7.03,
+   "n_lineages": 40
+  },
+  {
+   "generator": "d90_sample",
+   "lockin_rate": 1.0,
+   "mean_generations": 9.97,
+   "ci_low": 8.0,
+   "ci_high": 12.3,
+   "n_lineages": 40
+  }
+ ]
+}

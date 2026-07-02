@@ -1,0 +1,52 @@
+{
+ "rounds": 48,
+ "n_pos": 2150,
+ "n_neg": 6000,
+ "note": "AUC is on this sample (all converged + random non-converged), not the full 32,640 pairs, so n=12 here differs slightly from the headline full-sweep number.",
+ "by_n": [
+  {
+   "n": 8,
+   "auc_image": 0.8934,
+   "best": {
+    "max_image": 16,
+    "min_jaccard": 0.9,
+    "precision": 0.844,
+    "recall": 0.836,
+    "f1": 0.84
+   }
+  },
+  {
+   "n": 10,
+   "auc_image": 0.9118,
+   "best": {
+    "max_image": 32,
+    "min_jaccard": 0.999,
+    "precision": 0.887,
+    "recall": 0.826,
+    "f1": 0.855
+   }
+  },
+  {
+   "n": 12,
+   "auc_image": 0.9077,
+   "best": {
+    "max_image": 32,
+    "min_jaccard": 0.999,
+    "precision": 0.882,
+    "recall": 0.725,
+    "f1": 0.796
+   }
+  },
+  {
+   "n": 14,
+   "auc_image": 0.9147,
+   "best": {
+    "max_image": 64,
+    "min_jaccard": 0.999,
+    "precision": 0.91,
+    "recall": 0.856,
+    "f1": 0.882
+   }
+  }
+ ]
+}

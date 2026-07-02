@@ -1,0 +1,48 @@
+{
+ "h": 64,
+ "w": 64,
+ "steps": 200,
+ "seeds": 20,
+ "distinct_final_median": 283,
+ "cells": 4096,
+ "survival_by_born_popcount": [
+  1.0,
+  0.944,
+  0.704,
+  0.463,
+  0.23,
+  0.098,
+  0.032,
+  0.006,
+  0.0,
+  0.0
+ ],
+ "cell_share_t0": [
+  0.002,
+  0.018,
+  0.071,
+  0.161,
+  0.245,
+  0.247,
+  0.164,
+  0.071,
+  0.018,
+  0.002
+ ],
+ "cell_share_final": [
+  0.027,
+  0.151,
+  0.299,
+  0.298,
+  0.168,
+  0.049,
+  0.008,
+  0.0,
+  0.0,
+  0.0
+ ],
+ "restless_frac_t0": 0.502,
+ "restless_frac_final": 0.355,
+ "mean_born_popcount_t0": 4.51,
+ "mean_born_popcount_final": 2.61
+}

@@ -1,0 +1,20 @@
+{
+ "n": 64,
+ "steps": 80,
+ "max_generations": 60,
+ "seeds": 40,
+ "lockin_rate": 0.975,
+ "mean_generations_locked": 17.77,
+ "median_generations_locked": 14.0,
+ "cycle_periods": {
+  "1": 27,
+  "2": 12
+ },
+ "handoff_regime_counts": {
+  "structured": 141,
+  "drain": 226,
+  "noisy": 259,
+  "crystalline": 76,
+  "commute": 51
+ }
+}

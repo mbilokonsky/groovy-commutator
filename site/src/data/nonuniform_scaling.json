@@ -1,0 +1,43 @@
+{
+ "steps": 300,
+ "seeds": 30,
+ "rows": [
+  {
+   "n": 50,
+   "plateau_median": 10.0,
+   "plateau_frac": 0.2,
+   "q25": 7.25,
+   "q75": 13.0
+  },
+  {
+   "n": 100,
+   "plateau_median": 21.5,
+   "plateau_frac": 0.215,
+   "q25": 18.0,
+   "q75": 23.75
+  },
+  {
+   "n": 200,
+   "plateau_median": 36.5,
+   "plateau_frac": 0.182,
+   "q25": 33.25,
+   "q75": 40.0
+  },
+  {
+   "n": 400,
+   "plateau_median": 63.0,
+   "plateau_frac": 0.158,
+   "q25": 60.0,
+   "q75": 66.0
+  },
+  {
+   "n": 800,
+   "plateau_median": 96.5,
+   "plateau_frac": 0.121,
+   "q25": 93.25,
+   "q75": 99.0
+  }
+ ],
+ "loglog_slope": 0.81,
+ "plateau_verified_to_t": 1600
+}

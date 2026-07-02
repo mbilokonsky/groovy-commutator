@@ -1,0 +1,201 @@
+generator,rule0,seed,locked_in,generations,cycle_period
+population_count,90,0,True,8,1
+population_count,90,1,True,9,1
+population_count,90,2,True,15,1
+population_count,90,3,True,7,1
+population_count,90,4,True,7,1
+population_count,90,5,True,12,1
+population_count,90,6,True,9,1
+population_count,90,7,True,6,1
+population_count,90,8,True,2,1
+population_count,90,9,True,18,4
+population_count,90,10,True,9,1
+population_count,90,11,True,19,4
+population_count,90,12,True,13,1
+population_count,90,13,True,10,2
+population_count,90,14,True,8,2
+population_count,90,15,True,10,1
+population_count,90,16,True,8,1
+population_count,90,17,True,27,1
+population_count,90,18,True,9,2
+population_count,90,19,True,9,1
+population_count,90,20,True,16,1
+population_count,90,21,True,10,1
+population_count,90,22,True,9,2
+population_count,90,23,True,10,1
+population_count,90,24,True,10,1
+population_count,90,25,True,7,1
+population_count,90,26,True,17,1
+population_count,90,27,True,9,1
+population_count,90,28,True,13,1
+population_count,90,29,True,16,5
+population_count,90,30,True,14,1
+population_count,90,31,True,7,1
+population_count,90,32,True,10,1
+population_count,90,33,True,6,1
+population_count,90,34,True,12,1
+population_count,90,35,True,7,1
+population_count,90,36,True,23,1
+population_count,90,37,True,12,1
+population_count,90,38,True,13,1
+population_count,90,39,True,13,1
+absential_count,90,0,True,3,1
+absential_count,90,1,True,6,1
+absential_count,90,2,True,5,2
+absential_count,90,3,True,9,1
+absential_count,90,4,True,6,3
+absential_count,90,5,True,7,1
+absential_count,90,6,True,2,1
+absential_count,90,7,True,5,1
+absential_count,90,8,True,4,1
+absential_count,90,9,True,4,1
+absential_count,90,10,True,4,1
+absential_count,90,11,True,13,1
+absential_count,90,12,True,7,1
+absential_count,90,13,True,6,1
+absential_count,90,14,True,8,1
+absential_count,90,15,True,4,1
+absential_count,90,16,True,5,1
+absential_count,90,17,True,6,1
+absential_count,90,18,True,3,1
+absential_count,90,19,True,9,1
+absential_count,90,20,True,10,1
+absential_count,90,21,True,7,1
+absential_count,90,22,True,6,2
+absential_count,90,23,True,5,1
+absential_count,90,24,True,7,1
+absential_count,90,25,True,9,1
+absential_count,90,26,True,8,1
+absential_count,90,27,True,3,1
+absential_count,90,28,True,20,1
+absential_count,90,29,True,7,1
+absential_count,90,30,True,13,1
+absential_count,90,31,True,12,1
+absential_count,90,32,True,4,1
+absential_count,90,33,True,6,1
+absential_count,90,34,True,8,1
+absential_count,90,35,True,4,1
+absential_count,90,36,True,9,1
+absential_count,90,37,True,13,1
+absential_count,90,38,True,5,1
+absential_count,90,39,True,14,1
+g90_popcount (degenerate),90,0,True,2,1
+g90_popcount (degenerate),90,1,True,2,1
+g90_popcount (degenerate),90,2,True,2,1
+g90_popcount (degenerate),90,3,True,2,1
+g90_popcount (degenerate),90,4,True,2,1
+g90_popcount (degenerate),90,5,True,2,1
+g90_popcount (degenerate),90,6,True,2,1
+g90_popcount (degenerate),90,7,True,2,1
+g90_popcount (degenerate),90,8,True,2,1
+g90_popcount (degenerate),90,9,True,2,1
+g90_popcount (degenerate),90,10,True,2,1
+g90_popcount (degenerate),90,11,True,2,1
+g90_popcount (degenerate),90,12,True,2,1
+g90_popcount (degenerate),90,13,True,2,1
+g90_popcount (degenerate),90,14,True,2,1
+g90_popcount (degenerate),90,15,True,2,1
+g90_popcount (degenerate),90,16,True,2,1
+g90_popcount (degenerate),90,17,True,2,1
+g90_popcount (degenerate),90,18,True,2,1
+g90_popcount (degenerate),90,19,True,2,1
+g90_popcount (degenerate),90,20,True,2,1
+g90_popcount (degenerate),90,21,True,2,1
+g90_popcount (degenerate),90,22,True,2,1
+g90_popcount (degenerate),90,23,True,2,1
+g90_popcount (degenerate),90,24,True,2,1
+g90_popcount (degenerate),90,25,True,2,1
+g90_popcount (degenerate),90,26,True,2,1
+g90_popcount (degenerate),90,27,True,2,1
+g90_popcount (degenerate),90,28,True,2,1
+g90_popcount (degenerate),90,29,True,2,1
+g90_popcount (degenerate),90,30,True,2,1
+g90_popcount (degenerate),90,31,True,2,1
+g90_popcount (degenerate),90,32,True,2,1
+g90_popcount (degenerate),90,33,True,2,1
+g90_popcount (degenerate),90,34,True,2,1
+g90_popcount (degenerate),90,35,True,2,1
+g90_popcount (degenerate),90,36,True,2,1
+g90_popcount (degenerate),90,37,True,2,1
+g90_popcount (degenerate),90,38,True,2,1
+g90_popcount (degenerate),90,39,True,2,1
+g30_popcount,90,0,True,3,1
+g30_popcount,90,1,True,5,1
+g30_popcount,90,2,True,7,1
+g30_popcount,90,3,True,7,1
+g30_popcount,90,4,True,7,1
+g30_popcount,90,5,True,12,1
+g30_popcount,90,6,True,4,1
+g30_popcount,90,7,True,2,1
+g30_popcount,90,8,True,5,1
+g30_popcount,90,9,True,4,1
+g30_popcount,90,10,True,4,1
+g30_popcount,90,11,True,5,1
+g30_popcount,90,12,True,14,2
+g30_popcount,90,13,True,3,1
+g30_popcount,90,14,True,13,5
+g30_popcount,90,15,True,3,1
+g30_popcount,90,16,True,9,1
+g30_popcount,90,17,True,7,1
+g30_popcount,90,18,True,6,1
+g30_popcount,90,19,True,5,1
+g30_popcount,90,20,True,5,1
+g30_popcount,90,21,True,4,1
+g30_popcount,90,22,True,13,1
+g30_popcount,90,23,True,2,1
+g30_popcount,90,24,True,9,1
+g30_popcount,90,25,True,4,1
+g30_popcount,90,26,True,8,1
+g30_popcount,90,27,True,9,1
+g30_popcount,90,28,True,9,1
+g30_popcount,90,29,True,4,1
+g30_popcount,90,30,True,5,1
+g30_popcount,90,31,True,5,1
+g30_popcount,90,32,True,5,2
+g30_popcount,90,33,True,4,1
+g30_popcount,90,34,True,3,1
+g30_popcount,90,35,True,6,1
+g30_popcount,90,36,True,8,1
+g30_popcount,90,37,True,3,1
+g30_popcount,90,38,True,6,1
+g30_popcount,90,39,True,7,1
+d90_sample,90,0,True,3,1
+d90_sample,90,1,True,4,1
+d90_sample,90,2,True,8,1
+d90_sample,90,3,True,5,1
+d90_sample,90,4,True,6,1
+d90_sample,90,5,True,39,2
+d90_sample,90,6,True,11,1
+d90_sample,90,7,True,9,1
+d90_sample,90,8,True,4,1
+d90_sample,90,9,True,4,1
+d90_sample,90,10,True,21,1
+d90_sample,90,11,True,10,1
+d90_sample,90,12,True,12,1
+d90_sample,90,13,True,13,1
+d90_sample,90,14,True,8,1
+d90_sample,90,15,True,15,1
+d90_sample,90,16,True,4,1
+d90_sample,90,17,True,5,1
+d90_sample,90,18,True,16,1
+d90_sample,90,19,True,4,1
+d90_sample,90,20,True,10,1
+d90_sample,90,21,True,6,1
+d90_sample,90,22,True,4,1
+d90_sample,90,23,True,2,1
+d90_sample,90,24,True,18,1
+d90_sample,90,25,True,1,1
+d90_sample,90,26,True,9,1
+d90_sample,90,27,True,17,1
+d90_sample,90,28,True,4,1
+d90_sample,90,29,True,10,1
+d90_sample,90,30,True,8,2
+d90_sample,90,31,True,8,1
+d90_sample,90,32,True,7,1
+d90_sample,90,33,True,8,1
+d90_sample,90,34,True,12,1
+d90_sample,90,35,True,13,1
+d90_sample,90,36,True,17,1
+d90_sample,90,37,True,17,1
+d90_sample,90,38,True,21,1
+d90_sample,90,39,True,6,1

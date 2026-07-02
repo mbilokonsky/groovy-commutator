@@ -136,8 +136,27 @@ fully predict drain. Rule 4 (image_ratio 0.051) drains to zero against rules
 18 and rule 126 sharing the same image_ratio (0.135). The actual condition
 is a finer structural compatibility between the specific pair, more in the
 spirit of Moore-Boykett's permutivity conditions than a scalar lossiness
-score. Unresolved — a real candidate for further work, not just
-under-sampling.
+score.
+
+**Resolved (2026-07-01)** — see CLAUDE.md result 5 for the numbers. The
+condition is pairwise and two-part: the *composed* round map's eventual
+image (exhaustive at n=12, iterate until the image stops shrinking) must
+collapse to a tiny set, and the two orderings must collapse into the *same*
+set. Crystalline turns out to be the structural near-miss — a similar
+collapse into *disjoint* (constant-offset) attractors — which is a
+satisfying echo of the affine picture in section 2: the crystalline
+disagreement constant is exactly the fixed offset between the two
+attractor copies. The experiment also forced a taxonomy correction: the
+sweep's shape-based drain label (peak − final > 0.15) both over-counts
+(2,754 "drains" that never converge, median final disagreement 0.418 —
+transient decay, not convergence) and under-counts (895 "quiet drains"
+filed as crystalline because the transient stayed under the threshold).
+"Drain" as a mechanism should be read as: convergence of both orderings
+onto a literally shared attractor — entropy death into a shared grave —
+and it is visible from a 4,096-state toy computation. The Hindley-Rosen /
+confluence analogy in section 3 lands more precisely now: drain is the
+confluent case, crystalline the case where the critical pair never
+resolves but stays at fixed distance.
 
 ## 5. Open interpretive thread: Unus Mundus as rule composition
 
@@ -291,6 +310,37 @@ control sits exactly where it should, at the floor. Good first empirical
 anchor for "representational capacity" as the thing that's actually being
 selected on.
 
+Scale-up (2026-07-01, 40 independent initial states per generator) kept
+the direction and killed the gradient story: the zero-information control
+is theorem-pinned at exactly 2.0 generations (zero variance), every
+informative generator searches 3-5x longer with separated CIs — but
+population count ties the 8-bit derivative sample at the top, so "more
+bits in the generator → longer search" is wrong beyond the zero/nonzero
+split. Whatever "representational capacity" is being selected on, it is
+not naive bit-count.
+
+Two methodology corrections from this scale-up, worth remembering:
+starting-rule replication is pseudo-replication for state-only generators
+(everything after the first handoff depends only on the initial state);
+and the period-<=3 cycle detector misread period-4/5 cycles as
+open-endedness. The seductive "5% of lineages wander forever" finding
+died on inspection: seed 9's lineage cycles 23->41->19->43 eternally, at
+period 4, one past the detector's horizon. Chased to 400 generations:
+every lineage locks, all within ~27 generations. Open-endedness in this
+system has so far always turned out to be an artifact of a too-small
+window — a lesson that generalizes.
+
+The pair-lineage lift (2026-07-01, experiment_metaevolution_pairs.py):
+running the same lineage protocol over coupled two-layer pre-hoc systems
+(4 component rules, 2^32 configurations) still locks in 98% of the time,
+onto fixed points and 2-cycles only, after a ~2x longer search (median 14
+generations). Enlarging the searchable space sixteen-million-fold did not
+produce open-endedness — which points the open-ended-evolution question
+here away from rule-space size and toward the structure of the state→rule
+feedback (the generator's information bottleneck, and perhaps the
+absorbing quality of quiet configurations) as the thing that closes
+lineages down.
+
 **Absential field as a Class-IV detector — tested, inconclusive so far.**
 Ran `absential_trajectory` against one canonical example each of class
 I/II/III/IV (rules 0, 4, 30, 110) and compared `compressibility` of the
@@ -307,3 +357,159 @@ glider/still-life cases the hypothesis was framed around (gliders don't
 really exist as objects at the elementary-CA scale the same way they do
 in Conway's Life — the closer test would be a CA with known stable
 localized structures), not just four representative rules.
+
+**That closer test has now been run and the hypothesis is dead**
+(2026-07-01, `scripts/experiment_absential_2d.py`, `src/groovy/ca2d.py`):
+seven Life-like 2D rules from soup plus pure still-life and pure glider
+fields under Life itself. Absential compressibility is a monotone
+rescaling of raw compressibility in every condition — slightly more
+compressible than raw in 1D, slightly less in 2D (the Moore halo is
+denser), never cross-cutting, never adding discrimination. Established
+negative; see CLAUDE.md result 10. Two byproducts worth keeping: plain
+settled-window compressibility bands the informal classes by itself
+(frozen 0.01–0.02 / Class IV 0.32–0.36 / additive 0.61 / chaos 0.79 —
+"interesting" is the middle band again, rhyming with structured
+divergence), and the affine theorem crossed dimensions intact
+(B1357/S1357 is neighbor parity, the 2D rule 90; its G₂ vanished on
+every random grid tested while Life's never did).
+
+## 7. Pre-hoc composition: the fourth input, and what it took to make it real
+
+The open question on the site's questions page ("what if a rule's
+neighborhood could include cells from a different layer?") is now
+implemented (`src/groovy/prehoc.py`, 2026-07-01). Three things came out of
+making it concrete, in increasing order of interest.
+
+**The 4-input rule space is ordered-rule-pair space.** Index the 16-entry
+table by `8x + 4l + 2c + r` and the two 8-entry halves are just two
+elementary rules — the fourth input is a per-cell, per-step *selector*
+between them. This makes the space legible instead of astronomical: 65,536
+tables = 256×256 ordered pairs. Only 512 tables (0.8%) are separable into
+post-hoc form `g(l,c,r) XOR h(x)` (halves equal or complementary). So
+"coupling as a degenerate case of pre-hoc composition" is exactly right,
+and it is a *thin* degenerate case.
+
+**The collapse theorem.** The two inputs the original question proposed —
+feed in D(S) or the absential field A(S) as the fourth neighbor — turn out
+to be self-defeating, provably: any fourth input that is a same-time,
+radius-1 function of the same state (x = mu(S) with mu elementary) makes
+the 4-input rule collapse to a plain elementary rule,
+`eff[idx] = table[8*mu[idx] + idx]`. Both proposed inputs are of that form:
+A(S) is elementary rule 50 ((l|r) & ~c), and D(·,psi) is elementary rule
+psi ^ 204 (204 outputs the center bit, so the XOR flips exactly the c=1
+entries of psi's table). The generalization of the escape routes is clean
+and connects to existing lineages: the fourth input must come from another
+*time* — which is precisely CA-with-memory (Alonso-Sanz's program, and the
+Margolus-Fredkin second-order construction already in `secondorder.py`) —
+or another *trajectory*, i.e. a second layer with its own dynamics, which
+is where the experiment went.
+
+**Coupled layers, and emergence from boring parts.** Two layers, each
+stepped by a 4-input rule whose x is the other layer's current state
+(`prehoc.coupled_trajectory`). Sampling 1,500 random pre-hoc couplings vs
+1,500 post-hoc XOR controls (`scripts/experiment_prehoc_coupling.py`):
+the control population is almost entirely noise (median compressibility
+1.01 — XOR-ing an uncorrelated layer into a trajectory is a randomizer),
+while pre-hoc couplings span the whole range from frozen to noise (median
+0.70). The screen for emergence — all four component rules boring alone
+(solo compressibility < 0.10, i.e. fixed or small-cycle) while the coupled
+trajectory lands in the structured band — surfaced 3/1,500 samples, each
+robust across 20 rerolled initial conditions: (77,55|44,23),
+(237,93|71,221), (164,235|223,160). This is the project's clearest
+instance of a *relationship* carrying information its relata don't — the
+structured-divergence story from section 4, but generative rather than
+diagnostic: there the structure showed up in the disagreement field
+between two unfoldings; here it shows up in the trajectories themselves,
+manufactured by mutual sensitivity between two otherwise-inert dynamics.
+The unus-mundus thread in section 5 gains a sharper formal image from
+this: "one substrate, two orderings" becomes "two substrates, each
+constituted partly by the other's presence" — closer to Deacon's
+constitutive absence than the divergence construction ever was, since each
+layer's next state is literally a function of what the other layer is.
+
+Honest limits: one sampling run, one coupling topology (mutual, symmetric,
+same-time), one lattice size, and "boring/structured" read off the same
+zlib compressibility diagnostic used everywhere else — a richer emergence
+criterion (transfer entropy between layers, say) is untested. The
+selector decomposition also suggests an unexplored bridge back to
+meta-evolution: a lineage's generator could emit *pairs* of rules plus a
+coupling, instead of single rules.
+
+## 8. Rule-as-state: the second collapse, and selection showing up uninvited
+
+The last open instrument direction from section 6 — can the rule live in
+the same State -> State shape as the data? — is now implemented
+(`src/groovy/nonuniform.py`, 2026-07-01). The shape answer is easy and was
+always going to be: a per-cell rule field R is an (n,)-array whose 8
+bit-planes are literally state-shaped binary fields, so every diagnostic
+in the package (compressibility, D, absential) applies to the rule field
+unchanged. The interesting content is in what happened when R was given
+dynamics.
+
+**The second collapse theorem.** The maximally self-referential reading —
+each cell's rule number is the byte spelled by the 8 state bits around it,
+"instructions as patterns in the same substrate," read fresh each tick —
+is provably a single *uniform* CA of radius 4: S(t+1)[i] becomes a fixed
+function of the window S(t)[i-3..i+4]. Verified cell-by-cell against the
+explicit 256-entry window table. This is the same collapse that killed
+same-time inputs in pre-hoc composition (section 7), now one level up:
+**self-reference at a single time step is always just a bigger
+neighborhood.** What von Neumann's construction actually depends on — and
+what both collapses jointly point at — is *persistence*: the instruction
+tape is not recomputed from the machine's current surface each instant;
+it is carried. Memory is not an optimization, it is the thing that makes
+"rule" a separate ontological category from "state" at all.
+
+**State-gated rule transport, and the ecology it produces.** The honest
+construction: R persists; a live cell copies its left neighbor's rule
+over its own; a dead cell keeps its rule. (So the state gates transport
+through the rule medium, and rules move only where the state is active.)
+Two robust findings across 60 runs:
+
+- *Sustained polyculture.* Distinct-rule count falls 82 -> ~20 and then
+  holds flat for as long as we ran (never below 15). The rule field does
+  not re-converge to a uniform CA; heterogeneity is an attractor.
+- *Selection, unprompted.* Because only live cells get overwritten, a
+  rule that quiets its own host cell is immortal in place. Measured:
+  P(rule value survives | popcount) falls perfectly monotonically from
+  0.875 (popcount 0) to 0.000 (popcount 8), and the fraction of cells
+  carrying a restless rule (000->1) halves. But the population does NOT
+  converge to all-quiet — cell share peaks at popcount 2-3 — because
+  spreading requires the very liveness that gets a rule displaced.
+  Persistence selects for quiescence; propagation selects for activity;
+  the standoff is a stable mixed ecology. This is the smallest instance
+  I know of in this project of a *bona fide evolutionary trade-off*
+  emerging from a two-line update rule, and it rhymes with the
+  metaevolution finding (section 6): systems that generate their own
+  rules keep finding small stable platforms rather than runaway novelty.
+
+Adjacent literature, so this extends rather than rediscovers: non-uniform
+CA with evolved per-cell rules is Moshe Sipper's "cellular programming"
+program (*Evolution of Parallel Cellular Machines*, Springer 1997) — the
+difference here is that no external evolutionary algorithm is imposed;
+the selection pressure is endogenous, an artifact of how state gates rule
+transport. The quenched-heterogeneity finding (frozen random rule fields
+pin the state trajectory deep in the structured band, medians 0.11-0.16,
+where uniform rules sit at the extremes) is consistent with what
+disordered-media intuition would predict, and gives the project a third
+route to structure besides rule-pairing and pre-hoc coupling.
+
+Transport-scheme robustness, now run (60 runs per scheme): the mirror
+scheme reproduces everything (symmetry control passes). The sharper probe
+— gated XOR-recombination, where a live cell's rule becomes the XOR of
+its neighbors' rules, i.e. variation that INVENTS rules rather than
+moving them — keeps the selection direction fully intact (final pool
+enriched 2.1x toward all-quiet, depleted ~3x at the restless end) while
+changing the ecology's shape (diversity plateau ~67 rules, 57% of cells
+carrying invented rules). The quiescence pressure is a property of the
+gate, not of the variation mechanism — which is exactly the
+selection/variation decomposition evolutionary theory would ask for.
+Both now run. Plateau-vs-n: stable at every size (verified flat to
+t=1600), growing sublinearly (log-log slope 0.81) — bigger worlds hold
+more rules but proportionally fewer. Dimension: per-cell Life-like rules
+on a 2D torus (9-bit born/survive masks, west-neighbor transport)
+reproduce the full phenomenon — monotone survival gradient by
+born-popcount (1.00 → 0.00), mean born-popcount 4.5 → 2.6, stable
+~283-rule polyculture on 4,096 cells. The selection-for-quiescence
+pressure now stands across: three variation mechanisms, five lattice
+sizes, and two dimensions. What it still isn't: a proven mechanism.

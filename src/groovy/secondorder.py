@@ -9,11 +9,26 @@ relation run backwards, so no information is lost stepping forward. See
 Margolus & Toffoli, "Cellular Automata Machines" (MIT Press, 1987), and
 Fredkin's reversible-computing program.
 
-It composes with the rest of this package without modification: D(t-1)
-(operators.D applied to a past state) is just another array, so feeding a
-derivative field in as the "memory" term instead of raw S(t-1) is a small,
-well-typed variant worth trying -- not implemented here, left as an
-extension point.
+The generalization (now implemented): pass the memory through an arbitrary
+elementary rule mu before XOR-ing it in,
+
+    S(t+1) = phi(S(t)) XOR mu(S(t-1))
+
+The standard construction is mu = rule 204 (output = center bit, the
+identity CA). Inverting the recurrence needs mu(S(t-1)) = phi(S(t)) XOR
+S(t+1) and then S(t-1) itself -- so the generalized form is reversible
+IFF mu is an invertible CA. The elementary rules invertible on every ring
+size are exactly the six trivial reversible ECAs {15, 51, 85, 170, 204,
+240} (identity/complement/shift combinations).
+
+The "feed D(t-1) in as the memory term" variant proposed in this module's
+original docstring is the special case mu = phi XOR 204, by the prehoc
+identity D(., psi) == rule (psi ^ 204). Corollary: D-memory preserves
+reversibility exactly for phi in {0, 60, 102, 153, 195, 255} -- the
+constant rules, the two-input additive rules 60 (left XOR center) and 102
+(center XOR right), and their complements. Verified computationally in
+scripts/experiment_memory_variants.py (including the backward
+reconstruction for all six).
 """
 from __future__ import annotations
 import numpy as np
@@ -35,4 +50,25 @@ def run_second_order(state0: np.ndarray, state1: np.ndarray, rule_num: int, step
     traj[1] = state1
     for t in range(steps):
         traj[t + 2] = step_second_order(traj[t + 1], traj[t], rule_num)
+    return traj
+
+
+def step_second_order_mu(state_t: np.ndarray, state_t_minus_1: np.ndarray,
+                         rule_num: int, mu_rule: int) -> np.ndarray:
+    """Generalized memory step: phi(S(t)) XOR mu(S(t-1)). mu = 204 recovers
+    the standard reversible construction; mu = (rule_num ^ 204) is the
+    D-memory variant (see module docstring)."""
+    return np.bitwise_xor(apply_rule(state_t, rule_num),
+                          apply_rule(state_t_minus_1, mu_rule))
+
+
+def run_second_order_mu(state0: np.ndarray, state1: np.ndarray, rule_num: int,
+                        mu_rule: int, steps: int) -> np.ndarray:
+    """Forward run of the generalized recurrence, shape (steps + 2, n)."""
+    n = len(state1)
+    traj = np.zeros((steps + 2, n), dtype=np.uint8)
+    traj[0] = state0
+    traj[1] = state1
+    for t in range(steps):
+        traj[t + 2] = step_second_order_mu(traj[t + 1], traj[t], rule_num, mu_rule)
     return traj
